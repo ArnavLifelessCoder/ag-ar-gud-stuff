@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.DS_Store
+
+# Generated at run time, not source
+build_stats.json
+items.jsonl
+results/
+acts/
+figures/
+qa/

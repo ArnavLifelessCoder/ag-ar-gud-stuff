@@ -1,0 +1,24 @@
+# EVID-6 dependencies.
+# Kaggle images already carry most of these; pin only what actually bit us.
+
+# Core
+numpy>=1.24
+pillow>=10.0
+scikit-learn>=1.3          # multi_class= was removed in 1.7; code avoids it
+scipy>=1.10
+statsmodels>=0.14          # mcnemar
+matplotlib>=3.7
+
+# Dataset generation
+pycocotools>=2.0.6
+scikit-image>=0.21         # rgb2lab, deltaE_ciede2000 for the S4 check
+
+# Inference (GPU notebooks only)
+torch>=2.1
+transformers>=4.49         # Qwen2.5-VL and SmolVLM2 support
+accelerate>=0.27
+sentencepiece
+protobuf
+
+# Notebook tooling
+jupytext>=1.16             # .py <-> .ipynb round-trip
