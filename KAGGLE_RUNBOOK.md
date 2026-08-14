@@ -72,9 +72,10 @@ Expected output ends with:
 
 ## NB1 — build the dataset (CPU, no quota)
 
-**Add Input:** search datasets for `coco-2017-dataset` (the one that mounts at
-`/kaggle/input/coco-2017-dataset/coco2017`). Then paste the notebook body from
-`evid6/nb/NB1_build.ipynb`, with **Cell A above it**.
+**Add Input:** search datasets for a COCO 2017 set that includes
+`annotations/instances_val2017.json` and the `val2017` images. The exact
+dataset does not matter — `init_coco()` finds whatever you attached. Then paste
+the notebook body from `evid6/nb/NB1_build.ipynb`, with **Cell A above it**.
 
 ### Cell B — dependency check
 
@@ -122,12 +123,26 @@ imports itself:
 from generate import init_coco, build
 from schema import save_items
 
-COCO_ROOT = "/kaggle/input/coco-2017-dataset/coco2017"
-init_coco(root=COCO_ROOT)            # required before build(); sets up globals
-
+init_coco()                 # no arguments: finds COCO wherever it is mounted
 items = build(n_per_state=10, seed=0)
 save_items(items, "/kaggle/working/items.jsonl")
 print(f"{len(items)} items")
+```
+
+`init_coco()` with no arguments searches `/kaggle/input` for
+`instances_val2017.json` and the matching image directory, and prints both.
+Kaggle hosts several COCO 2017 datasets with different layouts —
+`<ds>/coco2017/annotations/…`, `<ds>/annotations/…`, images sometimes under
+`images/val2017` — and a hard-coded path gives you a `FileNotFoundError` from
+inside `pycocotools` that names the path it wanted, not the one you have.
+
+To see what it found before building anything:
+
+```python
+from generate import find_coco
+root, img_dir = find_coco("/kaggle/input")
+print("annotations:", root)
+print("images:     ", img_dir)
 ```
 
 Run to the end. Then **open `/kaggle/working/qa/index.html`** (Output tab → the
@@ -363,7 +378,8 @@ Paper freeze 22 Aug, submit 29 Aug.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `NOT FOUND` for every result in NB4 | notebook titles don't match the slugs | retitle to `evid6 nb1 output` etc., re-save |
-| `ImportError: cannot import name 'AutoModelForVision2Seq'` | transformers 5.x renamed it | fixed in code — `git pull` the repo, or just re-run Cell A in a fresh session |
+| `ImportError: cannot import name 'AutoModelForVision2Seq'` | transformers 5.x renamed it | fixed in code — re-run Cell A, then restart |
+| `FileNotFoundError: .../instances_val2017.json` | the attached COCO has a different layout | use `init_coco()` with no arguments; run `find_coco("/kaggle/input")` to see what it found |
 | `items.jsonl not found` | NB1 output not attached | Add Input → Notebook Output → `evid6 nb1 output` |
 | CUDA OOM on the second pass | a `load()` call inside a runner | pass `proc=proc, model=model` instead |
 | `ModuleNotFoundError: schema` | Cell A not run first, or run after imports | re-run Cell A, then Run All |

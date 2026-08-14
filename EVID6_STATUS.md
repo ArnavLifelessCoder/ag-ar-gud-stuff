@@ -357,6 +357,26 @@ suites were supposed to have all along.
 **Do not pin transformers on Kaggle.** The code adapts; pinning would just move
 the breakage.
 
+### 1.16 COCO layout autodetection — 6 Aug
+
+`ROOT` was hard-coded to one Kaggle COCO dataset's layout
+(`<ds>/coco2017/annotations/…`). Kaggle hosts several and they disagree: some
+put `annotations/` at the dataset root, some put images under `images/val2017`.
+A mismatch surfaced as a `FileNotFoundError` raised inside `pycocotools`, naming
+the path the code wanted rather than the path that exists.
+
+Worse, `init_coco(root=X)` set only where annotations were read from —
+**`IMG_DIR` kept its module-level default**. So pointing it at a non-default
+layout loaded the annotations successfully and then failed on every image, far
+from the cause. The e2e test never caught it because it set `g.IMG_DIR` by hand.
+
+`find_coco(search_root)` now locates `instances_val2017.json` and the matching
+image directory by searching, and `init_coco()` with no arguments uses it and
+sets both globals together. Verified against three layouts, including one with
+images under `images/val2017`, plus the missing-dataset case, which now raises
+naming the inputs it did see. The e2e test builds a full dataset from the
+awkward layout, so the two globals cannot drift apart again.
+
 ---
 
 ## 2. Left

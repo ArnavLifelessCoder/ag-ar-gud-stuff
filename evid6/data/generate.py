@@ -27,13 +27,87 @@ OUT_DIR = "/kaggle/working/evid6/images"
 
 # ── COCO setup ──────────────────────────────────────────────────────────────
 
-def init_coco(root=ROOT):
-    """Initialise the COCO API.  Called once at module level or by the driver."""
-    global coco, CATS, ALL_CAT_NAMES
+def find_coco(search_root: str = "/kaggle/input") -> tuple:
+    """Locate ``instances_val2017.json`` and its image directory.
+
+    Kaggle hosts several COCO 2017 datasets and they do not share a layout —
+    some mount as ``<ds>/coco2017/annotations/…``, others as
+    ``<ds>/annotations/…``.  Hard-coding one of them means a FileNotFoundError
+    inside ``COCO()`` that names the path it wanted but not the path you have.
+
+    Returns ``(root, img_dir)``: ``root`` is the directory containing
+    ``annotations/``, ``img_dir`` is the directory that actually holds the
+    val2017 JPEGs.  Raises with the candidates it did see if nothing matched.
+    """
+    ann = None
+    for dirpath, dirnames, filenames in os.walk(search_root):
+        if "instances_val2017.json" in filenames:
+            ann = os.path.join(dirpath, "instances_val2017.json")
+            break
+    if ann is None:
+        seen = sorted(os.listdir(search_root)) if os.path.isdir(search_root) else []
+        raise FileNotFoundError(
+            f"No instances_val2017.json under {search_root}. "
+            f"Attach a COCO 2017 dataset. Inputs present: {seen}"
+        )
+
+    root = os.path.dirname(os.path.dirname(ann))    # strip /annotations/<file>
+
+    # The images are usually a sibling of annotations/, but not always.
+    candidates = [os.path.join(root, "val2017"),
+                  os.path.join(root, "images", "val2017"),
+                  os.path.join(os.path.dirname(root), "val2017")]
+    img_dir = next((c for c in candidates
+                    if os.path.isdir(c) and any(f.endswith(".jpg")
+                                                for f in os.listdir(c)[:50])), None)
+    if img_dir is None:
+        for dirpath, dirnames, filenames in os.walk(search_root):
+            if os.path.basename(dirpath) == "val2017" and \
+                    any(f.endswith(".jpg") for f in filenames[:50]):
+                img_dir = dirpath
+                break
+    if img_dir is None:
+        raise FileNotFoundError(
+            f"Found annotations at {ann} but no val2017 image directory. "
+            f"Tried {candidates}."
+        )
+    return root, img_dir
+
+
+def init_coco(root=None, img_dir=None, search_root: str = "/kaggle/input"):
+    """Initialise the COCO API and point the generator at the right images.
+
+    Call with no arguments to auto-detect via :func:`find_coco`.
+
+    ``root`` used to set only where annotations were read from, while
+    ``IMG_DIR`` stayed on its hard-coded default — so pointing this at a
+    non-default COCO layout loaded the annotations fine and then failed on
+    every image, far from the cause.  Both globals are now set together.
+    """
+    global coco, CATS, ALL_CAT_NAMES, ROOT, IMG_DIR
+    if root is None:
+        root, auto_img = find_coco(search_root)
+        img_dir = img_dir or auto_img
+    ann = f"{root}/annotations/instances_val2017.json"
+    if not os.path.isfile(ann):
+        raise FileNotFoundError(
+            f"{ann} does not exist. Call init_coco() with no arguments to "
+            f"auto-detect the layout, or pass the directory that contains "
+            f"annotations/."
+        )
+    ROOT = root
+    IMG_DIR = img_dir or f"{root}/val2017"
+    if not os.path.isdir(IMG_DIR):
+        raise FileNotFoundError(
+            f"Image directory {IMG_DIR} does not exist. Pass img_dir= "
+            f"explicitly, or call init_coco() with no arguments."
+        )
     os.makedirs(OUT_DIR, exist_ok=True)
-    coco = COCO(f"{root}/annotations/instances_val2017.json")
+    coco = COCO(ann)
     CATS = {c["id"]: c["name"] for c in coco.loadCats(coco.getCatIds())}
     ALL_CAT_NAMES = set(CATS.values())
+    print(f"COCO annotations: {ann}")
+    print(f"COCO images:      {IMG_DIR}")
     return coco
 
 

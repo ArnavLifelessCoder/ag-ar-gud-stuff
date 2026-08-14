@@ -59,6 +59,42 @@ def main(n_per_state=12, keep=False):
     save_items(items, items_path)
     items = load_items(items_path)
 
+    print("\n[2b] COCO layout autodetection")
+    # Kaggle hosts several COCO 2017 datasets with different directory shapes.
+    # init_coco(root=...) used to set only where annotations were read from
+    # while IMG_DIR kept its hard-coded default, so a non-default layout loaded
+    # the annotations and then failed on every image, far from the cause.
+    alt = os.path.join(work, "alt_layout", "coco")
+    shutil.copytree(fixture, alt)
+    os.makedirs(os.path.join(alt, "images"), exist_ok=True)
+    shutil.move(os.path.join(alt, "val2017"),
+                os.path.join(alt, "images", "val2017"))
+    a_root, a_img = g.find_coco(os.path.join(work, "alt_layout"))
+    chk("find_coco locates annotations and images in a non-default layout",
+        os.path.isfile(os.path.join(a_root, "annotations",
+                                    "instances_val2017.json"))
+        and a_img.endswith(os.path.join("images", "val2017")),
+        os.path.relpath(a_img, work))
+
+    saved = (g.ROOT, g.IMG_DIR, g.OUT_DIR)
+    g.OUT_DIR = os.path.join(work, "alt_out")
+    g.init_coco(search_root=os.path.join(work, "alt_layout"))
+    chk("init_coco updates IMG_DIR, not just the annotation path",
+        g.IMG_DIR == a_img, "IMG_DIR used to keep its hard-coded default")
+    alt_items = g.build(n_per_state=4, seed=0)
+    chk("build() works end to end on the awkward layout",
+        alt_items and all(os.path.isfile(i.image_path) for i in alt_items),
+        f"{len(alt_items)} items")
+    try:
+        g.find_coco(os.path.join(work, "definitely_not_here"))
+        chk("find_coco raises when no COCO is attached", False, "it returned")
+    except FileNotFoundError:
+        chk("find_coco raises when no COCO is attached", True,
+            "and names the inputs it did see")
+
+    g.ROOT, g.IMG_DIR, g.OUT_DIR = saved
+    g.init_coco(root=fixture)
+
     print("\n[3] dataset invariants")
     chk("every image file exists",
         all(os.path.isfile(i.image_path) for i in items), f"{len(items)} files")

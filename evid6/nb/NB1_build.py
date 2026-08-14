@@ -25,15 +25,15 @@ import matplotlib.pyplot as plt   # inline display for visual QA cells
 sys.path.insert(0, "/kaggle/working/evid6/data")
 
 # %%
-# Verify COCO dataset is attached
-COCO_ROOT = "/kaggle/input/coco-2017-dataset/coco2017"
-assert os.path.isdir(f"{COCO_ROOT}/val2017"), (
-    "COCO val2017 not found. Attach 'coco-2017-dataset' as an input dataset."
-)
-assert os.path.isfile(f"{COCO_ROOT}/annotations/instances_val2017.json"), (
-    "COCO annotations not found."
-)
-print(f"COCO val2017 images: {len(os.listdir(f'{COCO_ROOT}/val2017'))}")
+# Locate the COCO dataset. Kaggle hosts several COCO 2017 datasets and they do
+# not share a directory layout, so this searches rather than assuming one.
+sys.path.insert(0, "/kaggle/working/evid6/data")
+from generate import find_coco
+
+COCO_ROOT, COCO_IMG_DIR = find_coco("/kaggle/input")
+print(f"COCO root:   {COCO_ROOT}")
+print(f"COCO images: {COCO_IMG_DIR}")
+print(f"COCO val2017 images: {len(os.listdir(COCO_IMG_DIR))}")
 
 # %% [markdown]
 # ## Copy source code to working directory
@@ -74,7 +74,9 @@ for s in STATES:
 # %%
 from generate import init_coco, build_occluder_bank, OUT_DIR
 
-coco = init_coco(root=COCO_ROOT)
+# Sets both the annotation path AND IMG_DIR — passing only a root used to leave
+# IMG_DIR on its hard-coded default, which fails later on every image.
+coco = init_coco(root=COCO_ROOT, img_dir=COCO_IMG_DIR)
 print(f"COCO loaded: {len(coco.getImgIds())} images")
 
 # %%
