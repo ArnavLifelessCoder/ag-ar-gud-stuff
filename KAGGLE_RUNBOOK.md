@@ -28,30 +28,45 @@ NB1 clones the repo, NB2/NB3 download models, NB4 downloads CLIP.
 
 ## Cell A — the setup cell (paste as the FIRST cell of all four notebooks)
 
-Idempotent: safe to re-run, will not wipe generated images.
+**Always refreshes the code**, and never touches generated images. An earlier
+version of this cell skipped the clone when `/kaggle/working/evid6` already
+existed, which meant a pushed fix never arrived and you kept running the old
+copy — with a traceback pointing at line numbers that no longer exist.
 
 ```python
-# --- EVID-6 setup: run FIRST, before anything else ---
+# --- EVID-6 setup: run FIRST, before anything else. Safe to re-run. ---
 import os, sys, shutil, subprocess
 
-if not os.path.isdir("/kaggle/working/evid6"):
-    subprocess.run(
-        ["git", "clone", "-q",
-         "https://github.com/ArnavLifelessCoder/ag-ar-gud-stuff.git",
-         "/tmp/evid6repo"], check=True)
-    shutil.copytree("/tmp/evid6repo/evid6", "/kaggle/working/evid6")
-    print("evid6 source installed")
-else:
-    print("evid6 already present")
+REPO = "https://github.com/ArnavLifelessCoder/ag-ar-gud-stuff.git"
+EV   = "/kaggle/working/evid6"
+
+shutil.rmtree("/tmp/evid6repo", ignore_errors=True)
+subprocess.run(["git", "clone", "-q", REPO, "/tmp/evid6repo"], check=True)
+
+# Refresh code only. images/ is generated output and must survive.
+for sub in ["data", "eval", "probe", "analysis", "tests", "nb"]:
+    shutil.rmtree(f"{EV}/{sub}", ignore_errors=True)
+    shutil.copytree(f"/tmp/evid6repo/evid6/{sub}", f"{EV}/{sub}")
+for f in ["__init__.py", "README.md", "requirements.txt"]:
+    shutil.copy(f"/tmp/evid6repo/evid6/{f}", f"{EV}/{f}")
 
 for sub in ["data", "eval", "probe", "analysis"]:
-    sys.path.insert(0, f"/kaggle/working/evid6/{sub}")
+    if f"{EV}/{sub}" not in sys.path:
+        sys.path.insert(0, f"{EV}/{sub}")
 
-print(sorted(os.listdir("/kaggle/working/evid6")))
+print("commit:", subprocess.run(
+    ["git", "-C", "/tmp/evid6repo", "log", "-1", "--format=%h %s"],
+    capture_output=True, text=True).stdout.strip())
+print(sorted(os.listdir(EV)))
 ```
 
 Expected output ends with:
 `['README.md', '__init__.py', 'analysis', 'data', 'eval', 'nb', 'probe', 'requirements.txt', 'tests']`
+(plus `images` once NB1 has built).
+
+> **After re-running Cell A to pick up a fix, restart the kernel.** Python
+> caches imported modules, so refreshing the files on disk does not change what
+> an already-running kernel has in memory. **Run → Restart & Run All.**
 
 ---
 
@@ -81,22 +96,38 @@ If anything says MISSING:
 ### Cell C — run the tests before spending anything
 
 ```python
-!cd /kaggle/working/evid6 && python tests/smoke_test.py 2>&1 | tail -5
+!cd /kaggle/working/evid6 && python tests/smoke_test.py 2>&1 | tail -20
 ```
 
 ```python
-!cd /kaggle/working/evid6 && python tests/test_pipeline_e2e.py 2>&1 | tail -5
+!cd /kaggle/working/evid6 && python tests/test_pipeline_e2e.py 2>&1 | tail -20
 ```
+
+`tail -20`, not `tail -5` — a traceback is longer than five lines, so `-5` hides
+the failing file and line and shows you only the last frame.
 
 Expect `ALL CHECKS PASSED` and `END-TO-END PIPELINE OK`. **If either fails,
 stop here.**
 
 ### Then: pilot first
 
-In NB1's build cell, change `150` to `10`:
+NB1's own build cell says `build(n_per_state=150, seed=0)`. **Edit that number
+to 10** — do not paste a new cell, or you get `NameError: name 'build' is not
+defined`, because `build` is imported by an earlier cell in the notebook.
+
+If you would rather run it standalone, this cell is self-contained and does the
+imports itself:
 
 ```python
+from generate import init_coco, build
+from schema import save_items
+
+COCO_ROOT = "/kaggle/input/coco-2017-dataset/coco2017"
+init_coco(root=COCO_ROOT)            # required before build(); sets up globals
+
 items = build(n_per_state=10, seed=0)
+save_items(items, "/kaggle/working/items.jsonl")
+print(f"{len(items)} items")
 ```
 
 Run to the end. Then **open `/kaggle/working/qa/index.html`** (Output tab → the
@@ -336,6 +367,9 @@ Paper freeze 22 Aug, submit 29 Aug.
 | `items.jsonl not found` | NB1 output not attached | Add Input → Notebook Output → `evid6 nb1 output` |
 | CUDA OOM on the second pass | a `load()` call inside a runner | pass `proc=proc, model=model` instead |
 | `ModuleNotFoundError: schema` | Cell A not run first, or run after imports | re-run Cell A, then Run All |
+| `NameError: name 'build' is not defined` | pasted the build line as a new cell | edit NB1's existing build cell, or use the self-contained pilot cell |
+| A fix you just pushed has no effect | old code still on disk, or module cached in the kernel | re-run Cell A (it now always refreshes), then **Restart & Run All** |
+| Traceback points at a line that does not match the file | same as above — stale copy | re-run Cell A, then restart |
 | `FileNotFoundError` on an image, first item of NB2/NB3 | `rebase_items` skipped | run the setup cell that reassigns `ITEMS_PATH` |
 | Image paths unresolved in the CLIP cell | NB1 output attached under a different name | check `NB1_PATH` at the top of NB4 |
 | Session died mid-sweep | Kaggle timeout | just re-run the pass — every runner is resumable |
