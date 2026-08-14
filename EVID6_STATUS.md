@@ -33,6 +33,8 @@ run on Windows as well as Kaggle — see §1.13.
 | `evid6_plan_v4.md` | **the plan.** Design, budget, timeline, kill criteria |
 | `EVID6_STATUS.md` | this file — what is done, left, and at risk |
 | `EVID6_readiness_review.md` | the original code review, now mostly history |
+| `KAGGLE_RUNBOOK.md` | **copy-paste Kaggle cells**, in order, with the pre-quota checks |
+| `RUNBOOK.md` | the same run, described rather than pasted; local setup + what is left |
 | `evid6/README.md` | how to run it |
 | `_to_delete/evid6_plan_v3_kaggle.md` | superseded; delete when you are ready |
 
@@ -296,6 +298,32 @@ which were missing — on this machine that upgraded numpy to 2.4.6 and pillow t
 
 All four `.ipynb` files were regenerated from their `.py` twins and verified
 identical on code cells.
+
+### 1.14 The NB1→NB2 image-path break — 6 Aug
+
+Found while verifying the Kaggle runbook, not by either suite.
+
+NB1 records **absolute** image paths from its own session
+(`/kaggle/working/evid6/images/…`). In NB2 and NB3 those images arrive as an
+attached dataset under a different root, and `run_inference.build_inputs` opens
+`item["image_path"]` verbatim. Every forward pass would have died on the first
+item — *after* the model had loaded, so it would have cost a session start and
+looked like a model problem. NB4 already remapped paths for the CLIP baseline;
+the two inference notebooks had no equivalent.
+
+`run_inference.rebase_items(items_path, search_roots)` now rewrites the manifest
+against wherever the images actually are, and NB2/NB3 call it in setup and
+reassign `ITEMS_PATH`. It **raises** rather than running partially: a manifest
+where some images resolve and some do not would drop items from every
+downstream count without saying so.
+
+The e2e test now copies the generated images to a second root, rewrites the
+manifest to the stale Kaggle paths, asserts that manifest is genuinely broken
+first (so the guard cannot pass vacuously), then asserts `rebase_items` repairs
+every path, preserves item order, and raises when nothing resolves.
+
+`KAGGLE_RUNBOOK.md` in the project root has the copy-paste cells, verified by
+cloning the pushed repo and replicating Kaggle's `sys.path` layout.
 
 ---
 

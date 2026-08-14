@@ -56,6 +56,18 @@ for candidate in [
 assert os.path.isfile(ITEMS_PATH), f"items.jsonl not found. Attach NB1 output."
 print(f"Using items from: {ITEMS_PATH}")
 
+# NB1 recorded absolute paths from its own session (/kaggle/working/evid6/...).
+# Here the images arrive as an attached dataset under a different root, so
+# those paths do not resolve and the first Image.open would kill the pass —
+# after the model has already loaded. Rebase before scoring anything.
+from run_inference import rebase_items
+
+ITEMS_PATH = rebase_items(ITEMS_PATH, [NB1_DATA,
+                                       "/kaggle/input/evid6-nb1-output",
+                                       "/kaggle/input/evid6-dataset",
+                                       "/kaggle/working"])
+print(f"Rebased items: {ITEMS_PATH}")
+
 with open(ITEMS_PATH, encoding="utf-8") as f:
     n_items = sum(1 for l in f if l.strip())
 print(f"Total items: {n_items}")

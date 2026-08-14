@@ -155,6 +155,86 @@ META_FIELDS = ["category", "occl_frac", "inst_pixels", "severity",
                "image_path", "ref_group", "parent_item_id", "artifact"]
 
 
+def rebase_items(items_path: str, search_roots, out_path: str = None) -> str:
+    """Rewrite ``items.jsonl`` so every ``image_path`` points at a file that exists.
+
+    NB1 records absolute paths from its own session
+    (``/kaggle/working/evid6/images/...``).  In NB2/NB3 those images arrive as an
+    attached dataset under a different root, so the recorded path does not
+    resolve and the first ``Image.open`` in ``build_inputs`` kills the pass —
+    on the first item, after the model has already loaded.  NB4 remaps for the
+    CLIP baseline; the inference notebooks had no equivalent.
+
+    Call this once in setup and point ``ITEMS_PATH`` at what it returns.
+
+    Parameters
+    ----------
+    items_path : str
+        The manifest as written by NB1.
+    search_roots : sequence of str
+        Directories to look under, in priority order.  Both ``<root>/<name>``
+        and ``<root>/evid6/images/<name>`` are tried.
+    out_path : str, optional
+        Where to write the rebased manifest.  Defaults to
+        ``{WORK}/items_local.jsonl``.
+
+    Returns
+    -------
+    str — path to the rebased manifest.  Raises if nothing resolved at all,
+    since that means the wrong dataset is attached and every later number
+    would be built on an empty run.
+    """
+    out_path = out_path or f"{WORK}/items_local.jsonl"
+    roots = [r for r in search_roots if r and os.path.isdir(r)]
+
+    rows, n_ok, n_moved, missing = [], 0, 0, []
+    with open(items_path, encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            it = json.loads(line)
+            p = it.get("image_path", "")
+            if p and os.path.isfile(p):
+                n_ok += 1
+            else:
+                name = os.path.basename(p)
+                for root in roots:
+                    for cand in (os.path.join(root, name),
+                                 os.path.join(root, "evid6", "images", name)):
+                        if os.path.isfile(cand):
+                            it["image_path"] = cand
+                            n_moved += 1
+                            break
+                    else:
+                        continue
+                    break
+                else:
+                    missing.append(name)
+            rows.append(it)
+
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        for it in rows:
+            f.write(json.dumps(it) + "\n")
+
+    print(f"rebase_items: {len(rows)} items — {n_ok} already valid, "
+          f"{n_moved} remapped, {len(missing)} unresolved")
+    if missing:
+        print(f"  first unresolved: {missing[0]}")
+    if n_ok + n_moved == 0:
+        raise FileNotFoundError(
+            f"No image in {items_path} resolved under {roots}. The wrong "
+            f"dataset is attached — fix this before spending GPU quota."
+        )
+    if missing:
+        raise FileNotFoundError(
+            f"{len(missing)} of {len(rows)} images unresolved (e.g. "
+            f"{missing[0]}). A partial run would silently drop items from "
+            f"every downstream count."
+        )
+    return out_path
+
+
 def base_row(item: dict) -> dict:
     """Identity + intervention metadata for one result row."""
     row = {

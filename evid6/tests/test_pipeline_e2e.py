@@ -16,6 +16,7 @@ and open the QA sheets.
 
 import os
 import sys
+import json
 import random
 import shutil
 import tempfile
@@ -90,6 +91,45 @@ def main(n_per_state=12, keep=False):
             for i in items if i.condition == "s0ctrl"),
         str(dict(Counter(f"{ids[i.parent_item_id].state}->{i.artifact}"
                          for i in items if i.condition == "s0ctrl"))))
+
+    print("\n[3a] cross-session image paths (the NB1 -> NB2 break)")
+    # NB1 writes absolute paths from its own session. NB2/NB3 see those images
+    # under a different root, so every path in the manifest is stale and the
+    # first Image.open in build_inputs would kill the pass after the model had
+    # already loaded. Simulate that move and check rebase_items repairs it.
+    import run_inference as ri
+    moved_root = os.path.join(work, "as_attached_dataset")
+    shutil.copytree(g.OUT_DIR, os.path.join(moved_root, "evid6", "images"))
+    stale = os.path.join(work, "stale_items.jsonl")
+    with open(items_path, encoding="utf-8") as fsrc, \
+         open(stale, "w", encoding="utf-8") as fdst:
+        for line in fsrc:
+            if line.strip():
+                row = json.loads(line)
+                row["image_path"] = ("/kaggle/working/evid6/images/"
+                                     + os.path.basename(row["image_path"]))
+                fdst.write(json.dumps(row) + "\n")
+
+    stale_rows = [json.loads(l) for l in open(stale, encoding="utf-8") if l.strip()]
+    chk("stale manifest really is broken (guards the guard)",
+        not any(os.path.isfile(r["image_path"]) for r in stale_rows),
+        f"{len(stale_rows)} unreadable paths")
+
+    rebased = ri.rebase_items(stale, [moved_root],
+                              out_path=os.path.join(work, "items_local.jsonl"))
+    rebased_rows = [json.loads(l) for l in open(rebased, encoding="utf-8") if l.strip()]
+    chk("rebase_items resolves every image under the new root",
+        all(os.path.isfile(r["image_path"]) for r in rebased_rows),
+        f"{len(rebased_rows)} items")
+    chk("rebase_items preserves item identity and order",
+        [r["item_id"] for r in rebased_rows] == [r["item_id"] for r in stale_rows])
+    try:
+        ri.rebase_items(stale, [os.path.join(work, "nonexistent")],
+                        out_path=os.path.join(work, "items_bad.jsonl"))
+        chk("rebase_items raises when nothing resolves", False, "it returned")
+    except FileNotFoundError:
+        chk("rebase_items raises when nothing resolves",
+            True, "wrong dataset attached fails loudly, not silently")
 
     print("\n[3b] image filenames")
     files = sorted(os.listdir(g.OUT_DIR))

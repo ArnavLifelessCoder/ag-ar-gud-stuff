@@ -48,6 +48,16 @@ for candidate in [
 assert ITEMS_PATH, "items.jsonl not found. Attach NB1 output."
 print(f"Items: {ITEMS_PATH}")
 
+# NB1 recorded absolute paths from its own session; here the images arrive as
+# an attached dataset under a different root. Without this the first
+# Image.open kills the pass, after the model has already loaded.
+from run_inference import rebase_items
+
+ITEMS_PATH = rebase_items(ITEMS_PATH, ["/kaggle/input/evid6-nb1-output",
+                                       "/kaggle/input/evid6-dataset",
+                                       "/kaggle/working"])
+print(f"Rebased items: {ITEMS_PATH}")
+
 # %% [markdown]
 # ---
 # # Model B: InternVL3-2B
