@@ -443,7 +443,7 @@ def gen_prioronly(img, masks, **_kw):
 
 # ── Main driver ─────────────────────────────────────────────────────────────
 
-def build(n_per_state: int = 150, seed: int = 0) -> list:
+def build(n_per_state: int = 150, seed: int = 0, prune_orphans: bool = False) -> list:
     """Build the full EVID-6 dataset.
 
     Returns a list of Item objects.  Rejection counts per state are printed
@@ -551,7 +551,14 @@ def build(n_per_state: int = 150, seed: int = 0) -> list:
         # No clean reference: there is no evidence to remove, so consistency
         # is undefined here (see schema.CONSISTENCY_STATES).
         if need["S5"] > 0:
-            absent = list(ALL_CAT_NAMES - present)
+            # sorted(), not list(): iterating a set of strings depends on
+            # PYTHONHASHSEED, which Python randomises per process. list() here
+            # made rng.choice pick a different absent category in every new
+            # session, so build(seed=0) produced entirely different S5 items
+            # run to run — a sixth of the benchmark, silently irreproducible.
+            # The e2e determinism check could not see it: it builds twice in
+            # one process, where the hash seed is fixed.
+            absent = sorted(ALL_CAT_NAMES - present)
             if absent:
                 c5 = rng.choice(absent)
                 iid_s = uid(iid, c5, "S5")
@@ -564,6 +571,33 @@ def build(n_per_state: int = 150, seed: int = 0) -> list:
     print("rejection counts:", rejects)
     print(f"total items: {len(items)}")
     print(f"remaining need: {need}")
+
+    # Images left over from an earlier build in the same directory.
+    #
+    # A pilot run at n_per_state=10 followed by the real build at 150 does not
+    # leave a clean prefix: once a state's quota fills, the `continue` above
+    # fires before the severity draw, so the rng stream diverges and later
+    # images pick different categories — hence different item ids, hence files
+    # on disk that no manifest row points at. Measured: 10 orphans from a
+    # 10 -> 40 sequence. They would ship inside the NB1 output dataset and
+    # break the "manifest and directory agree both ways" invariant.
+    try:
+        on_disk = {f for f in os.listdir(OUT_DIR) if f.endswith(".jpg")}
+        named = {os.path.basename(it.image_path) for it in items}
+        orphans = on_disk - named
+        if orphans:
+            if prune_orphans:
+                for f in orphans:
+                    os.remove(os.path.join(OUT_DIR, f))
+                print(f"pruned {len(orphans)} orphan images from an earlier build")
+            else:
+                print(f"WARNING: {len(orphans)} images in {OUT_DIR} belong to no "
+                      f"manifest row (e.g. {sorted(orphans)[0]}). They are left "
+                      f"over from an earlier build and will ship in this "
+                      f"notebook's output. Re-run with prune_orphans=True, or "
+                      f"clear the directory before the final build.")
+    except FileNotFoundError:
+        pass
 
     # Persist the rejection stats — this table goes in the appendix and is
     # lost forever when the Kaggle session is wiped.

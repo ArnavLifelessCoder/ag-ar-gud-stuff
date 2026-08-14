@@ -122,12 +122,32 @@ imports itself:
 ```python
 from generate import init_coco, build
 from schema import save_items
+from qa_sheet import contact_sheets, triptychs
 
 init_coco()                 # no arguments: finds COCO wherever it is mounted
 items = build(n_per_state=10, seed=0)
 save_items(items, "/kaggle/working/items.jsonl")
-print(f"{len(items)} items")
+
+# The QA sheets are the whole point of the pilot — build() alone does not
+# make them, it only writes images.
+contact_sheets(items, "/kaggle/working/qa", per_state=48, seed=0)
+triptychs(items, "/kaggle/working/qa", n=24, seed=0)
+print(f"{len(items)} items — now open /kaggle/working/qa/index.html")
 ```
+
+**What this writes** (all under `/kaggle/working`, all of it session-local until
+you Save Version):
+
+| Path | What |
+|---|---|
+| `items.jsonl` | the manifest |
+| `evid6/images/*.jpg` | one JPEG per item |
+| `evid6/build_stats.json` | rejection counts, for the appendix |
+| `qa/` | contact sheets, triptychs, `index.html` |
+
+Nothing leaves the session until **Save Version**. Closing the tab or letting
+the session expire loses all of it — which is fine for a pilot, and is why the
+full build ends with a Save.
 
 `init_coco()` with no arguments searches `/kaggle/input` for
 `instances_val2017.json` and the matching image directory, and prints both.
@@ -156,12 +176,35 @@ Check specifically:
 - **S4** — would a person genuinely be unsure which object is meant?
 - **S2** — does the occluder read as an object, not a grey box?
 
-When the sheets look right, set `n_per_state=150`, **Run All**, then check:
+### Then the real build — clear the pilot first
+
+The pilot's images do **not** all get overwritten by the full build. Once a
+state's quota fills, the generator skips it for later images, which shifts the
+random stream, so the full run picks different categories from that point on
+and writes different filenames. The pilot's leftovers would ship inside your
+NB1 output dataset. `build()` warns if it finds any; clear them instead:
+
+```python
+import shutil, os
+shutil.rmtree("/kaggle/working/evid6/images", ignore_errors=True)
+shutil.rmtree("/kaggle/working/qa", ignore_errors=True)
+for f in ["/kaggle/working/items.jsonl",
+          "/kaggle/working/evid6/build_stats.json"]:
+    if os.path.isfile(f):
+        os.remove(f)
+print("cleared — ready for the full build")
+```
+
+Then set `n_per_state=150`, **Run All**, and check:
 
 ```python
 import json
 print(json.load(open("/kaggle/working/evid6/build_stats.json")))
 ```
+
+`build()` prints a `WARNING: … belong to no manifest row` line if any stale
+images survived. If you see it, run the clear cell and rebuild — or pass
+`build(..., prune_orphans=True)`.
 
 Then **Save Version** (Quick Save is fine). This publishes `items.jsonl`,
 `evid6/images/`, `evid6/build_stats.json` and `qa/`.

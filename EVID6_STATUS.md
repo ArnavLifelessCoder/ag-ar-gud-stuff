@@ -357,6 +357,39 @@ suites were supposed to have all along.
 **Do not pin transformers on Kaggle.** The code adapts; pinning would just move
 the breakage.
 
+### 1.17 S5 was irreproducible across sessions — 6 Aug
+
+Found by asking a much smaller question: does the pilot build leave anything
+behind? It does, and chasing the leftover files exposed the cause.
+
+`build()` picked the false-premise category with
+`rng.choice(list(ALL_CAT_NAMES - present))`. That iterates a **set of strings**,
+whose order depends on `PYTHONHASHSEED` — randomised per process. So
+`build(seed=0)` chose different absent categories in every new session, giving
+different S5 item ids, different questions, different images. **A sixth of the
+benchmark was not reproducible**, and re-running NB1 in a fresh Kaggle session
+would not have reproduced the dataset any result was computed on.
+
+Neither suite could catch it. The determinism check builds twice **in one
+process**, where the hash seed is fixed by definition. Measured directly:
+`PYTHONHASHSEED=0/1/2` gave three disjoint S5 sets; after `sorted()`, four seeds
+give byte-identical output.
+
+The e2e test now re-runs `build()` in **subprocesses under two different hash
+seeds** and compares the full signature. Verified to fail when the `sorted()` is
+reverted — it is a real guard, not a decorative one.
+
+Same class as the `question_for` global-RNG bug in §1.13: an ordering dependency
+that a same-process test structurally cannot see.
+
+**Related, and how it was found.** A pilot at `n_per_state=10` followed by the
+full build at 150 does not overwrite everything: once a state's quota fills, the
+`continue` fires before the severity draw, the rng stream shifts, and later
+images pick different categories. Leftover JPEGs then ship inside the NB1 output
+dataset and break the "manifest and directory agree both ways" invariant.
+`build()` now warns and takes `prune_orphans=True`; the runbook clears the
+directory between pilot and full build.
+
 ### 1.16 COCO layout autodetection — 6 Aug
 
 `ROOT` was hard-coded to one Kaggle COCO dataset's layout

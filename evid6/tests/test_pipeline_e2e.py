@@ -220,6 +220,35 @@ def main(n_per_state=12, keep=False):
         {i.item_id: i.question for i in rebuilt}
         == {i.item_id: i.question for i in items},
         "question_for() must draw from the build's seeded rng")
+
+    # Same seed, DIFFERENT PROCESS. The check above cannot see hash-ordering
+    # bugs: it builds twice in one interpreter, where PYTHONHASHSEED is fixed.
+    # `list(ALL_CAT_NAMES - present)` iterated a set of strings, so rng.choice
+    # picked a different absent category in every new session and S5 — a sixth
+    # of the benchmark — was entirely different run to run.
+    import subprocess
+    probe = os.path.join(work, "probe_determinism.py")
+    with open(probe, "w", encoding="utf-8") as f:
+        f.write(
+            "import sys, os, json\n"
+            f"for s in {[os.path.join(BASE, s) for s in ('data','eval','probe','analysis')]!r}:\n"
+            "    sys.path.insert(0, s)\n"
+            "import generate as g\n"
+            f"g.OUT_DIR = {os.path.join(work, 'det_images')!r}\n"
+            f"g.init_coco(root={fixture!r})\n"
+            f"items = g.build(n_per_state={n_per_state}, seed=0)\n"
+            "print('SIG', json.dumps([[i.item_id, i.state, i.category, i.question]\n"
+            "                          for i in items]))\n")
+    sigs = []
+    for hashseed in ("0", "12345"):
+        env = dict(os.environ, PYTHONHASHSEED=hashseed)
+        out = subprocess.run([sys.executable, probe], capture_output=True,
+                             text=True, env=env)
+        line = next((l for l in out.stdout.splitlines() if l.startswith("SIG")), None)
+        sigs.append(line)
+    chk("build() is deterministic ACROSS processes (hash-seed independent)",
+        sigs[0] is not None and sigs[0] == sigs[1],
+        "sets of strings must be sorted() before an rng draws from them")
     from splits import make_folds
     main_items = [i for i in items if i.condition == "main"]
     folds = make_folds(main_items, n_splits=5, seed=0)
