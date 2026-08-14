@@ -290,7 +290,7 @@ uses.
 
 ```python
 from run_inference import load
-proc, model = load("OpenGVLab/InternVL3-2B")   # raises here if it cannot map
+proc, model = load("OpenGVLab/InternVL3-2B-hf")   # -hf = HF-native config
 msgs = [{"role":"user","content":[{"type":"image"},{"type":"text","text":"hi"}]}]
 print(proc.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False))
 print("InternVL loads — NB3 will run")
@@ -384,6 +384,8 @@ Paper freeze 22 Aug, submit 29 Aug.
 | A fix you just pushed has no effect | old code still on disk, or module cached in the kernel | re-run Cell A (it now always refreshes), then **Restart & Run All** |
 | Traceback points at a line that does not match the file | same as above — stale copy | re-run Cell A, then restart |
 | `FileNotFoundError` on an image, first item of NB2/NB3 | `rebase_items` skipped | run the setup cell that reassigns `ITEMS_PATH` |
+| `items.jsonl not found … Currently attached: {…}` | NB1 output not attached, or NB1 not Saved | Save NB1 (Version), then Add Input → Notebook Output → your NB1 notebook |
+| `Unrecognized configuration class … for AutoModelForImageTextToText` | model ships a custom config | use the `-hf` checkpoint (InternVL3-2B-hf); code now hints this automatically |
 | Image paths unresolved in the CLIP cell | NB1 output attached under a different name | check `NB1_PATH` at the top of NB4 |
 | Session died mid-sweep | Kaggle timeout | just re-run the pass — every runner is resumable |
 

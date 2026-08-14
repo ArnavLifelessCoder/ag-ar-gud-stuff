@@ -57,12 +57,30 @@ def load(model_id: str):
         device_map=DEV,
         trust_remote_code=True,
     )
+    def _load(dtype_kw):
+        try:
+            return AutoVLM.from_pretrained(model_id, **{dtype_kw: torch.float16}, **common)
+        except ValueError as e:
+            # The model ships a custom config the Auto-class can't map (e.g.
+            # OpenGVLab/InternVL3-2B's InternVLChatConfig via remote code).
+            # transformers 5.x has native InternVL support, so the "-hf"
+            # checkpoint loads; point there instead of the raw ValueError.
+            if "Unrecognized configuration class" in str(e):
+                hint = ""
+                if "internvl" in model_id.lower() and not model_id.lower().endswith("-hf"):
+                    hint = f" Try the HF-native checkpoint: '{model_id}-hf'."
+                raise ValueError(
+                    f"{model_id} uses a custom config that "
+                    f"{_AUTO_CLASS} cannot map.{hint} "
+                    "If no -hf variant exists, this model needs its own "
+                    "loader (model.chat() with explicit pixel_values)."
+                ) from e
+            raise
+
     try:
-        model = AutoVLM.from_pretrained(
-            model_id, dtype=torch.float16, **common)   # T4 is Turing: fp16, never bf16
+        model = _load("dtype")            # transformers 5.x spelling
     except TypeError:
-        model = AutoVLM.from_pretrained(
-            model_id, torch_dtype=torch.float16, **common)
+        model = _load("torch_dtype")      # transformers 4.x spelling
     return proc, model.eval()
 
 

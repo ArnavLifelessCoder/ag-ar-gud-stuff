@@ -76,6 +76,38 @@ class Item:
         return cls(**json.loads(line))
 
 
+# ── Locating the manifest across notebooks ──────────────────────────────────
+
+def find_items(search_roots=("/kaggle/input", "/kaggle/working")) -> str:
+    """Locate ``items.jsonl`` wherever NB1's output got mounted.
+
+    NB2/NB3/NB4 attach NB1's output as a dataset, and its mount path is the NB1
+    notebook's title slugified — which nobody can guarantee matches a hard-coded
+    guess. Rather than list three paths and assert, walk the input roots and
+    find the file. Same approach as ``find_coco``.
+
+    Returns the path, or raises listing what *is* attached so the fix is obvious.
+    """
+    for root in search_roots:
+        if not os.path.isdir(root):
+            continue
+        # Shallow, common locations first (fast path), then a full walk.
+        direct = os.path.join(root, "items.jsonl")
+        if os.path.isfile(direct):
+            return direct
+        for dirpath, _dirnames, filenames in os.walk(root):
+            if "items.jsonl" in filenames:
+                return os.path.join(dirpath, "items.jsonl")
+    seen = {}
+    for root in search_roots:
+        if os.path.isdir(root):
+            seen[root] = sorted(os.listdir(root))
+    raise FileNotFoundError(
+        "items.jsonl not found. Attach NB1's Saved output as a Notebook input. "
+        f"Currently attached: {seen}"
+    )
+
+
 # ── Manifest rebasing ───────────────────────────────────────────────────────
 
 def rebase_items(items_path: str, search_roots, out_path: str = None) -> str:

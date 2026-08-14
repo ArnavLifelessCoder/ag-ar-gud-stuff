@@ -39,33 +39,20 @@ sys.path.insert(0, "/kaggle/working/evid6/probe")
 sys.path.insert(0, "/kaggle/working/evid6/analysis")
 
 # %%
-# Verify NB1 output is attached
-NB1_DATA = "/kaggle/input/evid6-nb1-output"  # adjust path after attaching
-ITEMS_PATH = f"{NB1_DATA}/items.jsonl"
+# Locate NB1's output wherever it got mounted. The mount path is NB1's title
+# slugified, so we search rather than guess. Raises listing what IS attached.
+from schema import find_items
+from run_inference import rebase_items
 
-# Try common paths
-for candidate in [
-    "/kaggle/input/evid6-nb1-output/items.jsonl",
-    "/kaggle/input/evid6-dataset/items.jsonl",
-    "/kaggle/working/items.jsonl",
-]:
-    if os.path.isfile(candidate):
-        ITEMS_PATH = candidate
-        break
-
-assert os.path.isfile(ITEMS_PATH), f"items.jsonl not found. Attach NB1 output."
+ITEMS_PATH = find_items()
+NB1_DATA = os.path.dirname(ITEMS_PATH)
 print(f"Using items from: {ITEMS_PATH}")
 
 # NB1 recorded absolute paths from its own session (/kaggle/working/evid6/...).
 # Here the images arrive as an attached dataset under a different root, so
 # those paths do not resolve and the first Image.open would kill the pass —
 # after the model has already loaded. Rebase before scoring anything.
-from run_inference import rebase_items
-
-ITEMS_PATH = rebase_items(ITEMS_PATH, [NB1_DATA,
-                                       "/kaggle/input/evid6-nb1-output",
-                                       "/kaggle/input/evid6-dataset",
-                                       "/kaggle/working"])
+ITEMS_PATH = rebase_items(ITEMS_PATH, [NB1_DATA, "/kaggle/input", "/kaggle/working"])
 print(f"Rebased items: {ITEMS_PATH}")
 
 with open(ITEMS_PATH, encoding="utf-8") as f:

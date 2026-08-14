@@ -35,27 +35,16 @@ sys.path.insert(0, "/kaggle/working/evid6/probe")
 sys.path.insert(0, "/kaggle/working/evid6/analysis")
 
 # %%
-# Find items.jsonl
-ITEMS_PATH = None
-for candidate in [
-    "/kaggle/input/evid6-nb1-output/items.jsonl",
-    "/kaggle/input/evid6-dataset/items.jsonl",
-    "/kaggle/working/items.jsonl",
-]:
-    if os.path.isfile(candidate):
-        ITEMS_PATH = candidate
-        break
-assert ITEMS_PATH, "items.jsonl not found. Attach NB1 output."
-print(f"Items: {ITEMS_PATH}")
-
-# NB1 recorded absolute paths from its own session; here the images arrive as
-# an attached dataset under a different root. Without this the first
-# Image.open kills the pass, after the model has already loaded.
+# Locate NB1's output wherever it got mounted (its path is NB1's title
+# slugified), then rebase image paths to this session. Raises listing what IS
+# attached if nothing is found.
+from schema import find_items
 from run_inference import rebase_items
 
-ITEMS_PATH = rebase_items(ITEMS_PATH, ["/kaggle/input/evid6-nb1-output",
-                                       "/kaggle/input/evid6-dataset",
-                                       "/kaggle/working"])
+ITEMS_PATH = find_items()
+print(f"Items: {ITEMS_PATH}")
+ITEMS_PATH = rebase_items(ITEMS_PATH, [os.path.dirname(ITEMS_PATH),
+                                       "/kaggle/input", "/kaggle/working"])
 print(f"Rebased items: {ITEMS_PATH}")
 
 # %% [markdown]
@@ -63,7 +52,13 @@ print(f"Rebased items: {ITEMS_PATH}")
 # # Model B: InternVL3-2B
 
 # %%
-MODEL_B_ID = "OpenGVLab/InternVL3-2B"
+# The "-hf" checkpoint, not the plain repo. OpenGVLab/InternVL3-2B ships a
+# CUSTOM config (InternVLChatConfig, loaded via trust_remote_code) that the
+# transformers Auto-classes cannot map. transformers 5.x has NATIVE InternVL
+# support (InternVLConfig / InternVLForConditionalGeneration), and the "-hf"
+# repo is the converted checkpoint that uses it — so AutoModelForImageTextToText
+# maps it and no custom loader is needed. Same model, HF-native packaging.
+MODEL_B_ID = "OpenGVLab/InternVL3-2B-hf"
 MODEL_B_TAG = "internvl"
 
 # %% [markdown]
