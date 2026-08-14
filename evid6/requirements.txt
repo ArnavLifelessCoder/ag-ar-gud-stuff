@@ -15,7 +15,11 @@ scikit-image>=0.21         # rgb2lab, deltaE_ciede2000 for the S4 check
 
 # Inference (GPU notebooks only)
 torch>=2.1
-transformers>=4.49         # Qwen2.5-VL and SmolVLM2 support
+transformers>=4.49         # Qwen2.5-VL and SmolVLM2 support.
+                           # Do NOT pin an upper bound: 5.x renamed
+                           # AutoModelForVision2Seq -> AutoModelForImageTextToText
+                           # and torch_dtype -> dtype. run_inference.load()
+                           # resolves both, so newer is fine.
 accelerate>=0.27
 sentencepiece
 protobuf

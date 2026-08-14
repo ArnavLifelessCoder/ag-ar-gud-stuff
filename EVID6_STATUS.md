@@ -325,6 +325,38 @@ every path, preserves item order, and raises when nothing resolves.
 `KAGGLE_RUNBOOK.md` in the project root has the copy-paste cells, verified by
 cloning the pushed repo and replicating Kaggle's `sys.path` layout.
 
+### 1.15 transformers 5.x — the auto-class rename
+
+Hit on the first real Kaggle run, in NB1's test cell of all places.
+
+Current Kaggle images ship **transformers 5.x**, where `AutoModelForVision2Seq`
+no longer exists — it was renamed `AutoModelForImageTextToText` around 4.45 and
+the old alias is gone in 5. `run_inference` imported the old name at module
+level, so the import failed before any model was touched.
+
+Two independent problems, both fixed:
+
+**The loader was pinned to one spelling.** `load()` now resolves whichever auto
+class the installed transformers has, preferring the new name, and handles the
+matching `torch_dtype` → `dtype` keyword rename with a `TypeError` fallback.
+Verified both ways: against the real 4.41 here (resolves `Vision2Seq`) and
+against a stub presenting only the 5.x surface (resolves `ImageTextToText`).
+`env_report()` prints what actually resolved — call it once before a sweep.
+
+**A CPU-only test had a GPU dependency.** The §1.14 e2e check imported
+`rebase_items` from `run_inference`, which drags in torch and transformers at
+module level. That is what turned a transformers rename into a failure of the
+*dataset* test. `rebase_items` now lives in `data/schema.py` — which its own
+docstring already promised was dependency-free — and `run_inference` re-exports
+it so NB2/NB3 are unchanged.
+
+Both suites now pass with transformers **entirely absent**, verified by running
+them against a stub package that raises on import. That is the property the CPU
+suites were supposed to have all along.
+
+**Do not pin transformers on Kaggle.** The code adapts; pinning would just move
+the breakage.
+
 ---
 
 ## 2. Left

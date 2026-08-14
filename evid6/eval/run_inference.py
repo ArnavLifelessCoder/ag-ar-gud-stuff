@@ -18,7 +18,23 @@ import gc
 import torch
 import numpy as np
 from PIL import Image
-from transformers import AutoProcessor, AutoModelForVision2Seq
+import transformers
+from transformers import AutoProcessor
+
+# Manifest rebasing lives in schema.py so the CPU tests can use it without
+# dragging torch and transformers in behind it.
+from schema import rebase_items      # noqa: F401  (re-exported for NB2/NB3)
+
+# The auto-class for vision-language models was renamed. transformers >= 4.45
+# has AutoModelForImageTextToText; AutoModelForVision2Seq was the old name and
+# is gone in transformers 5.x, which is what current Kaggle images ship. Prefer
+# the new name and fall back, so this file loads on both.
+try:
+    from transformers import AutoModelForImageTextToText as AutoVLM
+    _AUTO_CLASS = "AutoModelForImageTextToText"
+except ImportError:                                  # transformers < 4.45
+    from transformers import AutoModelForVision2Seq as AutoVLM
+    _AUTO_CLASS = "AutoModelForVision2Seq"
 
 WORK = "/kaggle/working"
 DEV = "cuda"
@@ -32,14 +48,41 @@ def load(model_id: str):
     Returns (processor, model).
     """
     proc = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
-    model = AutoModelForVision2Seq.from_pretrained(
-        model_id,
-        torch_dtype=torch.float16,        # T4 is Turing: fp16, never bf16
+
+    # `torch_dtype` was renamed to `dtype` and removed in transformers 5.x.
+    # Try the current spelling, fall back to the old one, so the same file
+    # works on a 4.x Kaggle image and a 5.x one.
+    common = dict(
         attn_implementation="sdpa",       # FlashAttention-2 needs Ampere+
         device_map=DEV,
         trust_remote_code=True,
-    ).eval()
-    return proc, model
+    )
+    try:
+        model = AutoVLM.from_pretrained(
+            model_id, dtype=torch.float16, **common)   # T4 is Turing: fp16, never bf16
+    except TypeError:
+        model = AutoVLM.from_pretrained(
+            model_id, torch_dtype=torch.float16, **common)
+    return proc, model.eval()
+
+
+def env_report() -> dict:
+    """Print the versions and class names this run actually resolved.
+
+    Worth calling once before a sweep: the auto-class rename and the
+    torch_dtype/dtype rename both fail at import or first call, after the
+    session has already started.
+    """
+    info = {
+        "transformers": transformers.__version__,
+        "torch": torch.__version__,
+        "auto_class": _AUTO_CLASS,
+        "cuda": torch.cuda.is_available(),
+        "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+    }
+    for k, v in info.items():
+        print(f"  {k:14} {v}")
+    return info
 
 
 # ── Token utilities ─────────────────────────────────────────────────────────
@@ -153,86 +196,6 @@ def generate_one(proc, model, item: dict, prompt: str, max_new: int = 12,
 META_FIELDS = ["category", "occl_frac", "inst_pixels", "severity",
                "eff_res", "n_candidates", "delta_e", "ref_answer",
                "image_path", "ref_group", "parent_item_id", "artifact"]
-
-
-def rebase_items(items_path: str, search_roots, out_path: str = None) -> str:
-    """Rewrite ``items.jsonl`` so every ``image_path`` points at a file that exists.
-
-    NB1 records absolute paths from its own session
-    (``/kaggle/working/evid6/images/...``).  In NB2/NB3 those images arrive as an
-    attached dataset under a different root, so the recorded path does not
-    resolve and the first ``Image.open`` in ``build_inputs`` kills the pass —
-    on the first item, after the model has already loaded.  NB4 remaps for the
-    CLIP baseline; the inference notebooks had no equivalent.
-
-    Call this once in setup and point ``ITEMS_PATH`` at what it returns.
-
-    Parameters
-    ----------
-    items_path : str
-        The manifest as written by NB1.
-    search_roots : sequence of str
-        Directories to look under, in priority order.  Both ``<root>/<name>``
-        and ``<root>/evid6/images/<name>`` are tried.
-    out_path : str, optional
-        Where to write the rebased manifest.  Defaults to
-        ``{WORK}/items_local.jsonl``.
-
-    Returns
-    -------
-    str — path to the rebased manifest.  Raises if nothing resolved at all,
-    since that means the wrong dataset is attached and every later number
-    would be built on an empty run.
-    """
-    out_path = out_path or f"{WORK}/items_local.jsonl"
-    roots = [r for r in search_roots if r and os.path.isdir(r)]
-
-    rows, n_ok, n_moved, missing = [], 0, 0, []
-    with open(items_path, encoding="utf-8") as f:
-        for line in f:
-            if not line.strip():
-                continue
-            it = json.loads(line)
-            p = it.get("image_path", "")
-            if p and os.path.isfile(p):
-                n_ok += 1
-            else:
-                name = os.path.basename(p)
-                for root in roots:
-                    for cand in (os.path.join(root, name),
-                                 os.path.join(root, "evid6", "images", name)):
-                        if os.path.isfile(cand):
-                            it["image_path"] = cand
-                            n_moved += 1
-                            break
-                    else:
-                        continue
-                    break
-                else:
-                    missing.append(name)
-            rows.append(it)
-
-    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
-        for it in rows:
-            f.write(json.dumps(it) + "\n")
-
-    print(f"rebase_items: {len(rows)} items — {n_ok} already valid, "
-          f"{n_moved} remapped, {len(missing)} unresolved")
-    if missing:
-        print(f"  first unresolved: {missing[0]}")
-    if n_ok + n_moved == 0:
-        raise FileNotFoundError(
-            f"No image in {items_path} resolved under {roots}. The wrong "
-            f"dataset is attached — fix this before spending GPU quota."
-        )
-    if missing:
-        raise FileNotFoundError(
-            f"{len(missing)} of {len(rows)} images unresolved (e.g. "
-            f"{missing[0]}). A partial run would silently drop items from "
-            f"every downstream count."
-        )
-    return out_path
 
 
 def base_row(item: dict) -> dict:

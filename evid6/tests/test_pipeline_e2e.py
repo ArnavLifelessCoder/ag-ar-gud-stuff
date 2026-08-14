@@ -97,7 +97,12 @@ def main(n_per_state=12, keep=False):
     # under a different root, so every path in the manifest is stale and the
     # first Image.open in build_inputs would kill the pass after the model had
     # already loaded. Simulate that move and check rebase_items repairs it.
-    import run_inference as ri
+    # Imported from schema, NOT run_inference: this suite must stay runnable on
+    # a CPU box with no torch and no transformers. run_inference pulls both in
+    # at module level, and the transformers auto-class for VLMs was renamed
+    # between versions, so importing it here made a CPU-only test fail on an
+    # unrelated GPU dependency.
+    from schema import rebase_items
     moved_root = os.path.join(work, "as_attached_dataset")
     shutil.copytree(g.OUT_DIR, os.path.join(moved_root, "evid6", "images"))
     stale = os.path.join(work, "stale_items.jsonl")
@@ -115,7 +120,7 @@ def main(n_per_state=12, keep=False):
         not any(os.path.isfile(r["image_path"]) for r in stale_rows),
         f"{len(stale_rows)} unreadable paths")
 
-    rebased = ri.rebase_items(stale, [moved_root],
+    rebased = rebase_items(stale, [moved_root],
                               out_path=os.path.join(work, "items_local.jsonl"))
     rebased_rows = [json.loads(l) for l in open(rebased, encoding="utf-8") if l.strip()]
     chk("rebase_items resolves every image under the new root",
@@ -124,7 +129,7 @@ def main(n_per_state=12, keep=False):
     chk("rebase_items preserves item identity and order",
         [r["item_id"] for r in rebased_rows] == [r["item_id"] for r in stale_rows])
     try:
-        ri.rebase_items(stale, [os.path.join(work, "nonexistent")],
+        rebase_items(stale, [os.path.join(work, "nonexistent")],
                         out_path=os.path.join(work, "items_bad.jsonl"))
         chk("rebase_items raises when nothing resolves", False, "it returned")
     except FileNotFoundError:

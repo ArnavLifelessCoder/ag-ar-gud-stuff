@@ -126,26 +126,31 @@ Then **Save Version** (Quick Save is fine). This publishes `items.jsonl`,
 
 **Add Input:** Notebook Output → `evid6 nb1 output`.
 
-### Cell A0 — transformers version (paste ABOVE Cell A, run it, then restart)
+### Cell A1 — environment report
 
-Kaggle's image often ships transformers older than Qwen2.5-VL needs. This will
-fail at `load()` with an unrecognised-model error otherwise.
-
-```python
-!pip install -q -U "transformers>=4.49.0" accelerate
-```
-
-Now **Run → Restart & Clear Cell Outputs**, then Run All from Cell A. The
-restart matters — upgrading a package that is already imported does nothing.
-
-### Cell A1 — verify the upgrade took
+**Do not pin or downgrade transformers.** Current Kaggle images ship
+transformers 5.x, where `AutoModelForVision2Seq` no longer exists — it was
+renamed `AutoModelForImageTextToText`. `run_inference.load()` now resolves
+whichever name is present and handles the matching `torch_dtype` → `dtype`
+rename, so it works on both. Verified against a real 4.41 and a simulated 5.0.
 
 ```python
-import transformers, torch
-print("transformers", transformers.__version__)   # must be >= 4.49
-print("torch", torch.__version__, "| cuda", torch.cuda.is_available())
-print("GPU:", torch.cuda.get_device_name(0))
+from run_inference import env_report
+env_report()
 ```
+
+Expect something like:
+
+```
+  transformers   5.x.y
+  torch          2.x
+  auto_class     AutoModelForImageTextToText
+  cuda           True
+  gpu            Tesla T4
+```
+
+If `auto_class` prints `AutoModelForVision2Seq` that is fine too — it means an
+older image, and the fallback took.
 
 ### Cell D — the letter-token check (do this before the sweep)
 
@@ -224,36 +229,35 @@ Budget reality: NB2 is seven passes, not four. Assume **~3 h**, not the plan's
 ## NB3 — InternVL3-2B + SmolVLM2-2.2B (T4, ~2 h)
 
 **Add Input:** Notebook Output → `evid6 nb1 output`.
-Same Cell A0 (transformers upgrade + restart) and Cell A as NB2.
+Same Cell A and Cell A1 (env report) as NB2.
 
 ### Cell E — the InternVL load check (RUN THIS FIRST, alone)
 
 This is the single most likely reason NB3 dies, and it costs ten minutes
 against two hours of quota. InternVL historically needs its own `model.chat()`
-path with explicit `pixel_values` and dynamic tiling, not the
-`AutoModelForVision2Seq` + `apply_chat_template` path this code uses.
+path with explicit `pixel_values` and dynamic tiling, not the auto-class +
+`apply_chat_template` path this code uses.
+
+This goes through `run_inference.load()` deliberately — it exercises the exact
+loader NB3 will use, including the auto-class and dtype fallbacks, rather than
+a hand-written approximation that might succeed where the real one fails.
 
 ```python
-from transformers import AutoProcessor, AutoModelForVision2Seq
+from run_inference import load
 import torch
 
 mid = "OpenGVLab/InternVL3-2B"
-proc = AutoProcessor.from_pretrained(mid, trust_remote_code=True)
-print("1/3 processor ok")
-
-model = AutoModelForVision2Seq.from_pretrained(
-    mid, torch_dtype=torch.float16, attn_implementation="sdpa",
-    device_map="cuda", trust_remote_code=True).eval()
-print("2/3 model ok")
+proc, model = load(mid)          # raises here if the auto-class cannot map it
+print("1/2 processor + model ok")
 
 msgs = [{"role": "user", "content": [{"type": "image"},
                                      {"type": "text", "text": "hi"}]}]
 print(proc.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False))
-print("3/3 chat template ok — NB3 will run")
+print("2/2 chat template ok — NB3 will run")
 ```
 
-If any of the three raises, InternVL needs its own loader. Free the GPU and
-skip to Model C rather than burning the session:
+If either step raises, InternVL needs its own loader. Free the GPU and skip to
+Model C rather than burning the session:
 
 ```python
 del model, proc
@@ -328,7 +332,7 @@ Paper freeze 22 Aug, submit 29 Aug.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `NOT FOUND` for every result in NB4 | notebook titles don't match the slugs | retitle to `evid6 nb1 output` etc., re-save |
-| `KeyError`/unrecognised model at `load()` | transformers < 4.49 | Cell A0, then **restart the kernel** |
+| `ImportError: cannot import name 'AutoModelForVision2Seq'` | transformers 5.x renamed it | fixed in code — `git pull` the repo, or just re-run Cell A in a fresh session |
 | `items.jsonl not found` | NB1 output not attached | Add Input → Notebook Output → `evid6 nb1 output` |
 | CUDA OOM on the second pass | a `load()` call inside a runner | pass `proc=proc, model=model` instead |
 | `ModuleNotFoundError: schema` | Cell A not run first, or run after imports | re-run Cell A, then Run All |
