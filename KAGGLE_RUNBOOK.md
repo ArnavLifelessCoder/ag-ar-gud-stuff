@@ -211,171 +211,127 @@ Then **Save Version** (Quick Save is fine). This publishes `items.jsonl`,
 
 ---
 
+## The setup cell (first cell of NB2, NB3, NB4 — identical)
+
+Every notebook below starts with this one cell. It clones the repo fresh, so it
+always pulls the latest code. It prints the commit it installed.
+
+```python
+# --- EVID-6 setup: run FIRST. Safe to re-run. ---
+import os, sys, shutil, subprocess
+REPO = "https://github.com/ArnavLifelessCoder/ag-ar-gud-stuff.git"
+EV = "/kaggle/working/evid6"
+shutil.rmtree("/tmp/evid6repo", ignore_errors=True)
+subprocess.run(["git","clone","-q",REPO,"/tmp/evid6repo"], check=True)
+for sub in ["data","eval","probe","analysis","tests","nb"]:
+    shutil.rmtree(f"{EV}/{sub}", ignore_errors=True)
+    shutil.copytree(f"/tmp/evid6repo/evid6/{sub}", f"{EV}/{sub}")
+for f in ["__init__.py","README.md","requirements.txt"]:
+    shutil.copy(f"/tmp/evid6repo/evid6/{f}", f"{EV}/{f}")
+for sub in ["data","eval","probe","analysis"]:
+    if f"{EV}/{sub}" not in sys.path: sys.path.insert(0, f"{EV}/{sub}")
+print(subprocess.run(["git","-C","/tmp/evid6repo","log","-1","--format=%h %s"],
+                     capture_output=True, text=True).stdout.strip())
+```
+
+Each notebook is a complete, ordered script already in the repo, so after the
+setup cell you run the whole thing with one `%run` line. Every notebook
+verifies its letter tokens and smoke-tests one item **before** the expensive
+sweep, so it fails fast if anything is wrong — you do not need separate check
+cells.
+
+---
+
 ## NB2 — Qwen2.5-VL-3B (T4, ~3 h)
 
-**Add Input:** Notebook Output → `evid6 nb1 output`.
+**Add Input:** Notebook Output -> `evid6 nb1 output`. Accelerator **GPU T4**.
 
-### Cell A1 — environment report
+**Cell 1:** the setup cell above.
 
-**Do not pin or downgrade transformers.** Current Kaggle images ship
-transformers 5.x, where `AutoModelForVision2Seq` no longer exists — it was
-renamed `AutoModelForImageTextToText`. `run_inference.load()` now resolves
-whichever name is present and handles the matching `torch_dtype` → `dtype`
-rename, so it works on both. Verified against a real 4.41 and a simulated 5.0.
+**Cell 2 (optional, no model load, 2 s):** confirm the environment before you
+commit an hour to it.
 
 ```python
 from run_inference import env_report
 env_report()
 ```
 
-Expect something like:
+Expect `transformers 5.x`, `auto_class AutoModelForImageTextToText` (or the
+older `AutoModelForVision2Seq` — both work), `cuda True`, `gpu Tesla T4`.
 
-```
-  transformers   5.x.y
-  torch          2.x
-  auto_class     AutoModelForImageTextToText
-  cuda           True
-  gpu            Tesla T4
-```
-
-If `auto_class` prints `AutoModelForVision2Seq` that is fine too — it means an
-older image, and the fallback took.
-
-### Cell D — the letter-token check (do this before the sweep)
-
-Rung 3 is *entirely* the softmax over six letter-token ids, resolved by
-encoding a bare `"A"` with no context. A mismatch scores the wrong tokens
-**silently** instead of crashing. Run this right after the model loads, with
-`proc`, `model` and `opt_ids` already defined by NB2's own cells:
+**Cell 3:** run the whole notebook.
 
 ```python
-from run_inference import build_inputs
-from prompts import CAUSE_PROMPT
-import json, torch
-
-# ITEMS_PATH here is the REBASED manifest produced in setup — the raw NB1
-# manifest holds paths from NB1's session that do not exist in this one.
-with open(ITEMS_PATH, encoding="utf-8") as f:
-    it = json.loads(f.readline())
-assert os.path.isfile(it["image_path"]), "run the rebase_items cell in setup first"
-
-inp = build_inputs(proc, it["image_path"], CAUSE_PROMPT.format(q=it["question"]))
-with torch.inference_mode():
-    out = model(**inp, use_cache=False)
-top = int(out.logits[0, -1].argmax())
-
-print("unconstrained argmax token:", repr(proc.tokenizer.decode([top])))
-print("is it one of the six option ids?", top in opt_ids)
-print("option ids:", opt_ids)
+%run /kaggle/working/evid6/nb/NB2_infer_A.py
 ```
 
-If `False`, the model prefers a token that is not in `opt_ids` (commonly a
-space-prefixed `" A"`). Fix `letter_ids` in `evid6/eval/run_inference.py` to
-encode the letter *in context* before running the sweep — the numbers are
-meaningless otherwise.
+It loads Qwen once, verifies the six option-letter tokens round-trip
+(`letter_ids`), smoke-tests one item with a NaN check, then runs seven passes:
+clean references, treatment answers, the cause prompt with hidden-state caching,
+rung 1, rung 2, abstain, repair. It prints `[budget]` after each pass and a
+`print_report()` total at the end. The manifest is rebased to this session's
+image paths automatically in setup.
 
-### Cell D0 — confirm the image rebase happened
-
-NB2's setup calls `rebase_items()` and reassigns `ITEMS_PATH`. Check it before
-the sweep — if it were skipped, every forward pass dies on the first image,
-*after* the model has loaded.
-
-```python
-print("ITEMS_PATH:", ITEMS_PATH)          # should end in items_local.jsonl
-import json
-rows = [json.loads(l) for l in open(ITEMS_PATH, encoding="utf-8") if l.strip()]
-missing = [r for r in rows if not os.path.isfile(r["image_path"])]
-print(f"{len(rows)} items, {len(missing)} unreadable images")
-assert not missing, "wrong NB1 dataset attached"
-```
-
-`rebase_items` raises on any unresolved image rather than running partially —
-a half-run would silently drop items from every downstream count.
-
-### Then run the notebook
-
-NB2 loads the model once and threads it through all seven passes. **Do not add
-a `load()` call inside a runner** — two fp16 copies of a 3B model will not fit
-on a 15 GB T4.
-
-Every runner is resumable: re-running skips items already in the results file,
-so a session timeout costs you the current item, not the pass.
-
-Watch the budget as you go:
-
-```python
-from budget import print_report
-print_report()
-```
-
-Budget reality: NB2 is seven passes, not four. Assume **~3 h**, not the plan's
-1.5. If quota tightens, `full_passes(..., fewshot=False)` drops rung 2 cleanly.
-
-**Save Version** when done.
+Budget: seven passes, **~3 h**, not the plan's 1.5. If it errors at `load()` or
+the token round-trip, stop — that is the fail-fast working, and no sweep quota
+was spent. **Save Version** when it finishes.
 
 ---
 
 ## NB3 — InternVL3-2B + SmolVLM2-2.2B (T4, ~2 h)
 
-**Add Input:** Notebook Output → `evid6 nb1 output`.
-Same Cell A and Cell A1 (env report) as NB2.
+**Add Input:** Notebook Output -> `evid6 nb1 output`. Accelerator **GPU T4**.
 
-### Cell E — the InternVL load check (RUN THIS FIRST, alone)
+**Cell 1:** the setup cell.
 
-This is the single most likely reason NB3 dies, and it costs ten minutes
-against two hours of quota. InternVL historically needs its own `model.chat()`
-path with explicit `pixel_values` and dynamic tiling, not the auto-class +
-`apply_chat_template` path this code uses.
-
-This goes through `run_inference.load()` deliberately — it exercises the exact
-loader NB3 will use, including the auto-class and dtype fallbacks, rather than
-a hand-written approximation that might succeed where the real one fails.
+**Cell 2 (recommended pre-flight):** InternVL is the single most likely thing to
+fail, and you want to know before the sweep. This runs the exact loader NB3
+uses.
 
 ```python
 from run_inference import load
-import torch
-
-mid = "OpenGVLab/InternVL3-2B"
-proc, model = load(mid)          # raises here if the auto-class cannot map it
-print("1/2 processor + model ok")
-
-msgs = [{"role": "user", "content": [{"type": "image"},
-                                     {"type": "text", "text": "hi"}]}]
+proc, model = load("OpenGVLab/InternVL3-2B")   # raises here if it cannot map
+msgs = [{"role":"user","content":[{"type":"image"},{"type":"text","text":"hi"}]}]
 print(proc.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False))
-print("2/2 chat template ok — NB3 will run")
+print("InternVL loads — NB3 will run")
+import gc, torch; del model, proc; gc.collect(); torch.cuda.empty_cache()
 ```
 
-If either step raises, InternVL needs its own loader. Free the GPU and skip to
-Model C rather than burning the session:
+If that raises, InternVL needs its own loader — tell me and I will give you a
+one-line edit to skip Model B and run only SmolVLM. If it prints the template,
+continue.
+
+**Cell 3:** run the whole notebook.
 
 ```python
-del model, proc
-import gc; gc.collect(); torch.cuda.empty_cache()
+%run /kaggle/working/evid6/nb/NB3_infer_BC.py
 ```
 
-Then run only NB3's SmolVLM (Model C) section. Do the same letter-token check
-(Cell D) for each model that does load.
-
-**Save Version** when done.
+Same passes as NB2, for InternVL3 then SmolVLM2, one model resident at a time.
+**Save Version** when it finishes.
 
 ---
 
 ## NB4 — analysis (CPU, no quota)
 
-**Add Inputs — all three:** Notebook Output → `evid6 nb1 output`,
-`evid6 nb2 output`, `evid6 nb3 output`.
+**Add Inputs — all three:** Notebook Outputs -> `evid6 nb1 output`,
+`evid6 nb2 output`, `evid6 nb3 output`. Accelerator **CPU**.
 
-Cell A, then the NB4 body. The load cell prints one line per result file —
-**read it**. Anything reported `NOT FOUND` means an input is missing or a
-notebook title didn't match; fix that before interpreting any number.
+**Cell 1:** the setup cell.
+
+**Cell 2:** run the whole notebook.
 
 ```python
-# after NB4's load cell, confirm what actually arrived
-for k, v in results.items():
-    print(f"{k:20} {len(v):5} rows")
+%run /kaggle/working/evid6/nb/NB4_analyse.py
 ```
 
-### Three things to read, not skim
+It loads every result file (printing one line each — **watch for `NOT FOUND`**,
+which means an input is missing or a notebook title did not match), runs the
+four-rung ladder, the nested probe, the CLIP baseline, consistency and the
+P1/P2 verdict, abstention, transfer, every figure, `summary.json`, and the
+threats table. No quota.
+
+### Three things to read in its output, not skim
 
 **R4 is the nested number.** Each outer fold picks its probe layer using only
 its training folds. NB4 also prints what max-over-layers *would* have said, as
@@ -387,30 +343,28 @@ the bias avoided — on pure noise that gap is +2.4 points. Quote the nested one
 **Read the strict-vs-relaxed delta** before writing the abstract. NB4 prints
 the strict breakdown automatically when the gap exceeds 5 points.
 
-### Export the relabel sheet and start the 48-hour clock
+### After it finishes
 
-The sheet exports from NB4. The cooling-off is enforced — `score_sheet` warns
-if you score it early. Download `relabel_sheet.csv` from the Output tab and
-**do not open `relabel_key.json`.**
+Export `relabel_sheet.csv` from the Output tab and **start the 48-hour clock** —
+`score_sheet` warns if you score it early, and **do not open
+`relabel_key.json`**. Then **Save Version**; `figures/` holds every figure,
+`summary.json`, and the threats table in markdown and LaTeX.
 
-Then **Save Version**. `figures/` holds every figure, `summary.json`, and the
-threats table in markdown and LaTeX.
 
 ---
 
 ## Order of operations
 
-1. NB1 Cell C — both test suites. If red, stop.
-2. NB3 Cell E — InternVL load check. No quota, saves 2 h.
-3. NB1 at `n_per_state=10` → scan every QA sheet.
-4. NB1 at `n_per_state=150` → check `build_stats.json` → Save Version.
-5. NB2 Cell D — letter-token check.
-6. NB2 pilot → `print_report()` → project the real budget.
-7. NB2 / NB3 full sweeps → Save Version each.
-8. NB4 → ladder, consistency, P1/P2 verdict. Export relabel sheet, start 48 h clock.
-9. Tier B hand-sorting (200 items) while the clock runs.
-10. Steering, if E4 landed by 20 Aug.
-11. Score the relabel sheet. Write.
+1. NB1: setup cell → tests (`python tests/…`) → pilot at 10 → scan QA sheets.
+2. NB1: full build at 150 → check `build_stats.json` → **Save Version**.
+3. NB3 pre-flight: the InternVL load cell. No sweep quota, saves 2 h if it fails.
+4. NB2: setup + `%run NB2_infer_A.py` → **Save Version**.
+5. NB3: setup + `%run NB3_infer_BC.py` → **Save Version**.
+6. NB4: attach all three outputs → setup + `%run NB4_analyse.py`.
+   Export the relabel sheet, start the 48 h clock → **Save Version**.
+7. Tier B hand-sorting (200 items) while the clock runs.
+8. Steering, if E4 landed by 20 Aug.
+9. Score the relabel sheet. Write.
 
 Paper freeze 22 Aug, submit 29 Aug.
 
