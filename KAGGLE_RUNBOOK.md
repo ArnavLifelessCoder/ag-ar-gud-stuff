@@ -301,6 +301,18 @@ If that raises, InternVL needs its own loader — tell me and I will give you a
 one-line edit to skip Model B and run only SmolVLM. If it prints the template,
 continue.
 
+**If an older cell already failed with** `Unrecognized configuration class
+InternVLChatConfig`, run this replacement cell (not the old plain-checkpoint
+cell), then continue to Cell 3:
+
+```python
+# Never use OpenGVLab/InternVL3-2B here: use the HF-native checkpoint.
+from run_inference import load
+proc, model = load("OpenGVLab/InternVL3-2B-hf")
+print("InternVL compatibility check passed")
+import gc, torch; del model, proc; gc.collect(); torch.cuda.empty_cache()
+```
+
 **Cell 3:** run the whole notebook.
 
 ```python
