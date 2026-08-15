@@ -47,6 +47,15 @@ def load(model_id: str):
 
     Returns (processor, model).
     """
+    # The legacy InternVL repository exposes InternVLChatConfig through remote
+    # code.  Current Transformers auto-classes cannot instantiate that config,
+    # while the official ``-hf`` conversion uses the native InternVL config.
+    # Redirect here as well as in NB3 so stale Kaggle pre-flight cells cannot
+    # spend a session failing before the actual notebook starts.
+    if model_id.rstrip("/") == "OpenGVLab/InternVL3-2B":
+        model_id = "OpenGVLab/InternVL3-2B-hf"
+        print("Using HF-native InternVL checkpoint: " + model_id)
+
     proc = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
 
     # `torch_dtype` was renamed to `dtype` and removed in transformers 5.x.

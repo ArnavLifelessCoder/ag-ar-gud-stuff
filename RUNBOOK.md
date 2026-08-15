@@ -69,27 +69,25 @@ analysis path to the P1/P2 verdict.
 
 ### 2a. Does InternVL3-2B load through this code path?
 
-The single most likely reason NB3 dies. `run_inference.load()` uses
-`AutoProcessor` + `AutoModelForVision2Seq` + `apply_chat_template`; InternVL
-historically requires its own `model.chat()` path with explicit `pixel_values`
-and dynamic tiling. Ten minutes here, two hours of quota at stake.
+The single most likely reason NB3 dies. The plain `OpenGVLab/InternVL3-2B`
+repository exposes a custom `InternVLChatConfig`, which current Transformers
+auto-classes cannot map. NB3 uses the HF-native `-hf` checkpoint through the
+project loader; test that exact path before spending the sweep quota.
 
 On a T4 notebook:
 
 ```python
-from transformers import AutoProcessor, AutoModelForVision2Seq
-import torch
-mid = "OpenGVLab/InternVL3-2B"
-proc = AutoProcessor.from_pretrained(mid, trust_remote_code=True)
-model = AutoModelForVision2Seq.from_pretrained(
-    mid, torch_dtype=torch.float16, attn_implementation="sdpa",
-    device_map="cuda", trust_remote_code=True).eval()
+from run_inference import load
+import gc, torch
+mid = "OpenGVLab/InternVL3-2B-hf"
+proc, model = load(mid)
 msgs = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": "hi"}]}]
 print(proc.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False))
+del model, proc; gc.collect(); torch.cuda.empty_cache()
 ```
 
-If any of those three lines raises, InternVL needs its own loader before NB3
-runs. Do not discover this mid-sweep.
+If this raises, do not run Model B's sweep. The error is a real loader
+incompatibility, not a transient warning.
 
 ### 2b. Do the option-letter token ids match what the model emits?
 
