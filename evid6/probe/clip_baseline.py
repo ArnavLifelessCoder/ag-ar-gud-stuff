@@ -39,9 +39,42 @@ def clip_features(paths: list, bs: int = 32, model_id: str = "openai/clip-vit-ba
             batch_paths = paths[i:i + bs]
             ims = [Image.open(q).convert("RGB") for q in batch_paths]
             inputs = p(images=ims, return_tensors="pt")
-            f = m.get_image_features(**inputs)
+            f = _image_embeds(m, inputs)
             feats.append(torch.nn.functional.normalize(f, dim=-1).numpy())
     return np.concatenate(feats)
+
+
+def _image_embeds(model, inputs):
+    """Projected CLIP image embedding, across transformers versions.
+
+    ``get_image_features`` returned a plain Tensor through transformers 4.x,
+    but 5.x returns a ``BaseModelOutputWithPooling``.  Passing that straight to
+    ``F.normalize`` raises ``AttributeError: 'BaseModelOutputWithPooling'
+    object has no attribute 'norm'`` -- which is exactly how a 5.7-hour NB4 run
+    died 40 seconds after the probes had finished.
+
+    Returns the 512-d projected embedding either way, so the baseline is the
+    same quantity on both versions.
+    """
+    out = model.get_image_features(**inputs)
+    if torch.is_tensor(out):
+        return out
+    # 5.x: unwrap, then apply the visual projection ourselves if we were handed
+    # the pre-projection pooled vision output.
+    embeds = getattr(out, "image_embeds", None)
+    if torch.is_tensor(embeds):
+        return embeds
+    pooled = getattr(out, "pooler_output", None)
+    if torch.is_tensor(pooled):
+        return model.visual_projection(pooled)
+    hidden = getattr(out, "last_hidden_state", None)
+    if torch.is_tensor(hidden):
+        return model.visual_projection(hidden[:, 0])
+    raise TypeError(
+        f"CLIPModel.get_image_features returned {type(out).__name__} with no "
+        "recognisable image embedding; update _image_embeds for this "
+        "transformers version."
+    )
 
 
 def clip_probe(paths, y, folds, C: float = 1.0):

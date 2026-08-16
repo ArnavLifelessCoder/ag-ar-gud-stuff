@@ -1,6 +1,6 @@
 # EVID-6 smoke test report
 
-Generated 2026-08-16 13:19, Python 3.12.8,
+Generated 2026-08-16 20:33, Python 3.12.8,
 numpy 2.4.6.
 
 The offline test exercises the entire CPU path — schema, fold leakage guard,

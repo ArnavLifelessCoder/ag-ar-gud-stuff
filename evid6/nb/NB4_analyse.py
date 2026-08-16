@@ -164,8 +164,46 @@ sweeps = {}
 best_layers = {}     # for the sweep figure and the learning curve only
 probe_r4 = {}        # the honest rung-4 number: layer chosen inside training folds
 
+# The probe is by far the most expensive stage: measured 3.7 h for Qwen's
+# nested selection alone (5 outer folds x 37 layers x 4 inner folds at 2,048
+# dims), 5.7 h for the notebook. A failure in any later cell used to discard
+# all of it. Results are now written to disk the moment each model finishes,
+# and reloaded on a rerun -- attach the previous NB4 output and the probe is
+# skipped entirely.
+PROBE_CACHE = "/kaggle/working/figures/probe_cache.json"
+_cached = {}
+_found_cache = find_file("probe_cache.json")
+if _found_cache:
+    with open(_found_cache, encoding="utf-8") as f:
+        _cached = json.load(f)
+    print(f"Probe cache found at {_found_cache}: {sorted(_cached)}")
+    print("  Cached models will be reloaded, not recomputed.")
+
+
+def _save_probe_cache():
+    os.makedirs(os.path.dirname(PROBE_CACHE), exist_ok=True)
+    payload = {k: {"sweep": [[int(l), float(a), float(s)] for l, a, s in sweeps[k]],
+                   "best_layer": [int(best_layers[k][0]), float(best_layers[k][1]),
+                                  float(best_layers[k][2])],
+                   "r4": probe_r4[k]}
+               for k in probe_r4}
+    with open(PROBE_CACHE, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+    print(f"  probe cache written: {PROBE_CACHE} ({sorted(payload)})")
+
+
 for tag_prefix in MODELS:
     tag = f"{tag_prefix}_cause"
+
+    if tag_prefix in _cached:
+        c = _cached[tag_prefix]
+        sweeps[tag_prefix] = [tuple(x) for x in c["sweep"]]
+        best_layers[tag_prefix] = tuple(c["best_layer"])
+        probe_r4[tag_prefix] = c["r4"]
+        print(f"\n{tag}: loaded from cache — R4 = {c['r4']['accuracy']:.1%} "
+              f"(layers {c['r4']['layers_chosen']})")
+        continue
+
     # Try to find activation files
     acts_base = None
     _cand = find_dir(tag)          # searches for a directory named <tag>
@@ -229,6 +267,10 @@ for tag_prefix in MODELS:
     if len(set(nb["layers_chosen"])) > 1:
         print("  NOTE: folds disagree on the best layer. Say so in the paper "
               "rather than quoting a single layer index.")
+
+    # Persist immediately, per model -- not at the end of the notebook. A crash
+    # in any later cell must never cost this again.
+    _save_probe_cache()
 
 # %% [markdown]
 # ## 4. Learning curves
@@ -300,8 +342,20 @@ if missing:
     print(f"WARNING: {len(missing)} image paths unresolved, e.g. {missing[0]}")
 
 print("Running CLIP baseline probe...")
-clip_acc, clip_std = clip_probe(fixed_paths, y_main, folds)
-print(f"CLIP baseline: {clip_acc:.1%} ± {clip_std:.1%}")
+# Non-fatal on purpose. This is a sanity check that runs AFTER hours of probe
+# work, and an exception here aborts the whole batch run and discards every
+# figure -- which is exactly what happened when transformers 5.x changed the
+# return type of CLIPModel.get_image_features. A missing baseline is a caveat;
+# losing the run is not acceptable.
+try:
+    clip_acc, clip_std = clip_probe(fixed_paths, y_main, folds)
+    print(f"CLIP baseline: {clip_acc:.1%} ± {clip_std:.1%}")
+except Exception as e:
+    clip_acc, clip_std = None, None
+    print(f"CLIP BASELINE FAILED ({type(e).__name__}: {e})")
+    print("  Continuing without it. The kill criterion below cannot be")
+    print("  evaluated, so state in the paper that the CLIP control is absent")
+    print("  rather than implying it passed.")
 
 # Kill criterion: if CLIP >= the VLM probe, drop absolute numbers from abstract.
 # Compare against the nested R4, not the max-over-layers number — comparing a
