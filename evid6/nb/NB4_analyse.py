@@ -57,6 +57,25 @@ def find_dir(name, roots=None):
     return None
 
 
+def find_all_files(name, roots=None):
+    """Every file called ``name`` under the input roots.
+
+    ``find_file`` returns the first hit, which is wrong for anything that
+    exists once per notebook -- notably ``gpu_budget.json``. NB2 logged 1.19
+    GPU-h and NB3 logged 7.99; taking whichever the walk reached first would
+    put 1.19 or 7.99 in ``summary.json`` as the pipeline's total compute,
+    when it is 9.18. That number goes in the paper.
+    """
+    hits = []
+    for root in (roots or SEARCH_ROOTS):
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _dirnames, files in os.walk(root):
+            if name in files:
+                hits.append(os.path.join(dirpath, name))
+    return hits
+
+
 def find_file(name, roots=None):
     """First file called ``name`` under any input root, else None."""
     for root in (roots or SEARCH_ROOTS):
@@ -822,8 +841,26 @@ else:
 # %%
 try:
     from budget import report as budget_report, print_report
-    _bud = find_file("gpu_budget.json")
-    budget = print_report(_bud) if _bud else budget_report()
+    # Merge every attached notebook's budget log — one per inference notebook.
+    _buds = find_all_files("gpu_budget.json")
+    if _buds:
+        _merged, _seen = {"stages": []}, set()
+        for _p in _buds:
+            with open(_p, encoding="utf-8") as f:
+                for _st in json.load(f).get("stages", []):
+                    _k = (_st.get("name"), _st.get("seconds"))
+                    if _k in _seen:          # same log reachable by two paths
+                        continue
+                    _seen.add(_k)
+                    _merged["stages"].append(_st)
+        _out = "/kaggle/working/gpu_budget_merged.json"
+        with open(_out, "w", encoding="utf-8") as f:
+            json.dump(_merged, f, indent=2)
+        print(f"Merged {len(_buds)} budget log(s), "
+              f"{len(_merged['stages'])} stages -> {_out}")
+        budget = print_report(_out)
+    else:
+        budget = budget_report()
 except Exception as e:
     print(f"budget log unavailable: {e}")
     budget = None
