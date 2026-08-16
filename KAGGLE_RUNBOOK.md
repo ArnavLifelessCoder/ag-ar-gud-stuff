@@ -5,24 +5,42 @@ the code by cloning the repo and replicating Kaggle's `sys.path` layout.
 
 ---
 
-## Before you start: notebook titles matter
+## Before you start
 
-The notebooks find each other's outputs by **hard-coded Kaggle paths**, and a
-notebook's input path is its title lowercased with hyphens. Get these wrong and
-NB4 silently reports `NOT FOUND` for every result file.
+**Titles no longer matter.** Every notebook now *searches* the input roots for
+what it needs (`schema.find_items`, and `find_dir`/`find_file` in NB4) instead
+of guessing a mount path from a title slug. Name them whatever you like. This
+was a real failure: a notebook output mounts under its own title, so
+"vlm neurips nb1" landed at `/kaggle/input/vlm-neurips-nb1` while the code
+looked for `/kaggle/input/evid6-nb1-output` and asserted on the first cell.
 
-Create four notebooks titled **exactly**:
-
-| Notebook | Title it exactly | Accelerator | Internet |
+| Notebook | Accelerator | Internet | Attach |
 |---|---|---|---|
-| NB1 | `evid6 nb1 output` | CPU | **On** |
-| NB2 | `evid6 nb2 output` | GPU T4 | **On** |
-| NB3 | `evid6 nb3 output` | GPU T4 | **On** |
-| NB4 | `evid6 nb4 analyse` | CPU | **On** |
+| NB1 | CPU | **On** | a COCO 2017 dataset |
+| NB2 | GPU (T4 or P100) | **On** | NB1 output |
+| NB3 | GPU (T4 or P100) | **On** | NB1 output |
+| NB4 | **CPU** | **On** | NB1 + NB2 + NB3 outputs |
 
-Those titles produce `/kaggle/input/evid6-nb1-output`, `-nb2-`, `-nb3-`, which
-is exactly what NB2/NB3/NB4 search for. Internet must be **On** in all four —
-NB1 clones the repo, NB2/NB3 download models, NB4 downloads CLIP.
+Internet must be **On** everywhere — NB1 clones the repo, NB2/NB3 download
+models, NB4 downloads CLIP.
+
+## Interactive vs Save & Run All — this one costs you work
+
+`/kaggle/working` is **wiped when a session ends**, and Kaggle culls idle
+interactive sessions long before a long job's results are safe.
+
+- **Interactive** (the ▶ buttons): fine for pre-flight checks and anything you
+  watch. If you start a 90-minute run and walk away, the notebook finishes,
+  then the session idles out and takes `/kaggle/working` — figures included —
+  with it.
+- **Save Version → Save & Run All (Commit):** runs the whole notebook detached
+  in a batch container and **permanently persists** `/kaggle/working` as that
+  notebook's output. Close the browser; come back whenever.
+
+**Use Save & Run All for NB1's full build, NB2, NB3 and NB4.** Anything you
+intend to attach to a later notebook must exist as a *saved output*, which only
+a committed run produces. (The `papermill` in a failure traceback tells you it
+was a batch run.)
 
 ---
 
@@ -244,7 +262,7 @@ cells.
 
 ## NB2 — Qwen2.5-VL-3B (T4, ~3 h)
 
-**Add Input:** Notebook Output -> `evid6 nb1 output`. Accelerator **GPU T4**.
+**Add Input:** Notebook Output -> your NB1 notebook. Accelerator **GPU** (T4 or P100 — both are Pascal/Turing, both fp16 + SDPA, no code change).
 
 **Cell 1:** the setup cell above.
 
@@ -280,7 +298,7 @@ was spent. **Save Version** when it finishes.
 
 ## NB3 — InternVL3-2B + SmolVLM2-2.2B (T4, ~2 h)
 
-**Add Input:** Notebook Output -> `evid6 nb1 output`. Accelerator **GPU T4**.
+**Add Input:** Notebook Output -> your NB1 notebook. Accelerator **GPU** (T4 or P100 — both are Pascal/Turing, both fp16 + SDPA, no code change).
 
 **Cell 1:** the setup cell.
 
@@ -336,59 +354,112 @@ Same passes as NB2, for InternVL3 then SmolVLM2, one model resident at a time.
 
 ---
 
-## NB4 — analysis (CPU, no quota)
+## NB4 — analysis (CPU, ~1.5 h, no quota)
 
-**Add Inputs — all three:** Notebook Outputs -> `evid6 nb1 output`,
-`evid6 nb2 output`, `evid6 nb3 output`. Accelerator **CPU**.
+**Attach exactly three inputs** — Add Input -> Notebook Output: your NB1, NB2
+and NB3 notebooks. Accelerator **CPU**.
 
-**Cell 1:** the setup cell.
+**Do not attach the COCO dataset.** NB4 never reads it, and its ~164,000 files
+make the input search crawl.
 
-**Cell 2:** run the whole notebook.
+### Can NB4 use a GPU? No — it would be slower.
+
+The cost is `sklearn.LogisticRegression`, which has no CUDA path. The CLIP
+baseline is CPU-bound too: `clip_baseline.py` never moves the model to a
+device. Meanwhile Kaggle's own dialog warns that enabling a GPU *reduces the
+number of CPUs*, and the probe is BLAS-threaded across cores — so a GPU session
+gives you fewer cores, burns quota, and finishes later. Leave it on CPU.
+
+Measured runtime: 20.9 s per layer on Qwen's 2,048-dim activations, so the
+sweep is ~13 min and the **nested probe ~52 min**, plus ~15 min for InternVL.
+Budget ~1.5 h wall clock. It costs no GPU quota, so start it and walk away —
+via Save & Run All, not interactively.
+
+**Cell 1:** the setup cell. It must print commit `3b49e39` or later; that is
+the first commit where NB4 can find the outputs and survive the NaN rows.
+
+**Cell 2 — pre-flight, ~10 s.** Run this *interactively* before committing to a
+90-minute batch run, so a missing input fails in seconds rather than at the end.
+
+```python
+import os, sys
+sys.path.insert(0, "/kaggle/working/evid6/data")
+from schema import find_items
+print("items:", find_items(["/kaggle/input", "/kaggle/working"]))
+for r in sorted(os.listdir("/kaggle/input")):
+    print("  attached:", r)
+```
+
+If it raises, it names what *is* attached. Neither the NB2 nor NB3 output
+carries `items.jsonl` or the images — only `items_local.jsonl` — so **NB1 must
+be attached** for the manifest and the CLIP baseline.
+
+**Cell 3:** run the whole notebook.
 
 ```python
 %run /kaggle/working/evid6/nb/NB4_analyse.py
 ```
 
-It loads every result file (printing one line each — **watch for `NOT FOUND`**,
-which means an input is missing or a notebook title did not match), runs the
-four-rung ladder, the nested probe, the CLIP baseline, consistency and the
-P1/P2 verdict, abstention, transfer, every figure, `summary.json`, and the
-threats table. No quota.
+Then **Save Version -> Save & Run All (Commit)**.
 
-### Three things to read in its output, not skim
+It loads every result file, runs the four-rung ladder, the nested probe, the
+CLIP baseline, consistency and the P1/P2 verdict, abstention, transfer, every
+figure, `summary.json`, and the threats table.
+
+### Four things to check in the log, not skim
+
+**No `NOT FOUND`** in the result-loading lines. One per model per pass; any
+miss means an input is not attached.
+
+**`DROPPED 5 ... non-finite`** on `qwen_cause` is expected — five of Qwen's 900
+aligned rows have NaN activations from a bad forward pass. NB4 drops them,
+prints their item ids, and continues. That exclusion goes in the paper.
 
 **R4 is the nested number.** Each outer fold picks its probe layer using only
 its training folds. NB4 also prints what max-over-layers *would* have said, as
 the bias avoided — on pure noise that gap is +2.4 points. Quote the nested one.
 
-**Check `layers_chosen`.** If the five outer folds disagree on the best layer,
-"the probe reads it at layer k" is not an honest sentence.
-
-**Read the strict-vs-relaxed delta** before writing the abstract. NB4 prints
-the strict breakdown automatically when the gap exceeds 5 points.
+**Check `layers_chosen`.** If the five outer folds disagree, "the probe reads it
+at layer k" is not an honest sentence. And read the strict-vs-relaxed delta:
+it exceeds 5 points on all three models, so the matching rule is load-bearing.
+Strict is the headline; relaxed is the sensitivity arm.
 
 ### After it finishes
 
-Export `relabel_sheet.csv` from the Output tab and **start the 48-hour clock** —
-`score_sheet` warns if you score it early, and **do not open
-`relabel_key.json`**. Then **Save Version**; `figures/` holds every figure,
-`summary.json`, and the threats table in markdown and LaTeX.
+Everything persists in the notebook output: `figures/` (every PDF,
+`summary.json`, `threats_table.md` and `.tex`) and `relabel/relabel_sheet.csv`.
 
+Download `relabel_sheet.csv` and **start the 48-hour clock** — `score_sheet`
+warns if you score it early. **Do not open `relabel_key.json`.**
+
+Expect the consistency block to report a failed criterion: reference stability
+breaches its 35% gate on all three models (58.8 / 78.7 / 59.0%). That is a
+known, documented negative — see `NB2_NB3_ANALYSIS.md` §3 — not a bug in NB4.
 
 ---
 
 ## Order of operations
 
-1. NB1: setup cell → tests (`python tests/…`) → pilot at 10 → scan QA sheets.
-2. NB1: full build at 150 → check `build_stats.json` → **Save Version**.
-3. NB3 pre-flight: the InternVL load cell. No sweep quota, saves 2 h if it fails.
-4. NB2: setup + `%run NB2_infer_A.py` → **Save Version**.
-5. NB3: setup + `%run NB3_infer_BC.py` → **Save Version**.
-6. NB4: attach all three outputs → setup + `%run NB4_analyse.py`.
-   Export the relabel sheet, start the 48 h clock → **Save Version**.
-7. Tier B hand-sorting (200 items) while the clock runs.
-8. Steering, if E4 landed by 20 Aug.
-9. Score the relabel sheet. Write.
+Interactive for the pre-flights; **Save & Run All** for anything that produces
+an output you will attach later.
+
+1. NB1: setup → tests → pilot at 10 → scan QA sheets.  ✅ done
+2. NB1: full build at 150 → check `build_stats.json` → Save & Run All.  ✅ done
+3. NB3 pre-flight: the InternVL load cell (interactive, no sweep quota).  ✅ done
+4. NB2: setup + `%run NB2_infer_A.py` → Save & Run All.  ✅ done, 1.19 GPU-h
+5. NB3: setup + `%run NB3_infer_BC.py` → Save & Run All.  ✅ done, 7.99 GPU-h
+6. **NB4: attach NB1+NB2+NB3 → pre-flight cell interactively → Save & Run All.**
+   ~1.5 h CPU, no quota. ← you are here
+7. Export the relabel sheet, start the 48 h clock.
+8. Tier B hand-sorting (200 items) while the clock runs.
+9. Optional, 0.62 GPU-h: rerun `smolvlm_cause` with `cache_hidden=True` for a
+   third probe. SmolVLM is at chance behaviourally — if its activations still
+   separate the states, that is the strongest form of the paper's claim.
+10. Optional, 2.55 GPU-h: rerun `clean`+`treat` under **new tags** with a
+    constrained answer task, to get the reference drop rate under 35%. Runners
+    resume by tag, so reusing a tag silently processes zero items.
+11. Steering, if E4 landed by 20 Aug.
+12. Score the relabel sheet. Write.
 
 Paper freeze 22 Aug, submit 29 Aug.
 
@@ -398,10 +469,11 @@ Paper freeze 22 Aug, submit 29 Aug.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `NOT FOUND` for every result in NB4 | notebook titles don't match the slugs | retitle to `evid6 nb1 output` etc., re-save |
+| `NOT FOUND` for every result in NB4 | an output is not attached, or was never Saved | Add Input -> Notebook Output for each of NB1/NB2/NB3; only a **committed** run produces an attachable output |
 | `ImportError: cannot import name 'AutoModelForVision2Seq'` | transformers 5.x renamed it | fixed in code — re-run Cell A, then restart |
 | `FileNotFoundError: .../instances_val2017.json` | the attached COCO has a different layout | use `init_coco()` with no arguments; run `find_coco("/kaggle/input")` to see what it found |
-| `items.jsonl not found` | NB1 output not attached | Add Input → Notebook Output → `evid6 nb1 output` |
+| `items.jsonl not found ... Currently attached: {...}` | NB1 output not attached | the message lists what IS attached; add NB1's Notebook Output |
+| Figures gone after you came back | ran interactively, session idled out and wiped `/kaggle/working` | re-run via **Save & Run All**; only committed runs persist |
 | CUDA OOM on the second pass | a `load()` call inside a runner | pass `proc=proc, model=model` instead |
 | `ModuleNotFoundError: schema` | Cell A not run first, or run after imports | re-run Cell A, then Run All |
 | `NameError: name 'build' is not defined` | pasted the build line as a new cell | edit NB1's existing build cell, or use the self-contained pilot cell |
