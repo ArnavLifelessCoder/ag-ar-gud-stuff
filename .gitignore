@@ -10,3 +10,10 @@ results/
 acts/
 figures/
 qa/
+
+# Downloaded Kaggle output folders. Kept locally for auditability, never
+# committed: they duplicate the evid6/ source tree, which invites editing the
+# wrong copy. `acts/` and `results/` above already exclude the heavy .npy and
+# .jsonl payloads; these two lines exclude the folders wholesale.
+results-nb3/
+vlm nb2 results/

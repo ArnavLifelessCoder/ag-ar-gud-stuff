@@ -450,9 +450,12 @@ blocked here so it could not be tested at all. InternVL historically requires it
 own `model.chat()` path with explicit `pixel_values` and dynamic tiling. **The
 most likely reason NB3 dies.** Ten-minute test, two hours of quota at stake.
 
-**No model has ever run.** The inference path (`load`, `letter_ids`,
-`build_inputs`, `score_one`, hidden-state capture) is statically checked and
-contract-tested but has never touched a real checkpoint.
+**~~No model has ever run.~~ Resolved 16 Aug — all three have.** NB2 (Qwen,
+1.19 GPU-h) and NB3 (InternVL3-2B-hf and SmolVLM2-2.2B, 7.99 GPU-h) both
+completed every pass over the full 1,838-row manifest. The inference path is
+no longer merely contract-tested. See `NB2_NB3_ANALYSIS.md` for the results and
+the two quality failures they exposed (Qwen NaN rows; reference stability
+breaching its 35% gate on all three models).
 
 **Option-letter token ids are resolved from a bare `"A"`.** `letter_ids` encodes
 the letter with no preceding context and asserts it round-trips. After a chat
@@ -530,6 +533,12 @@ caught by a test:
   beside it, which is the mitigation, but read the delta before writing.
 
 ---
+
+**15 Aug update:** the four items immediately above are now resolved and have
+regression coverage. Missing prior-only data yields *unknown* rather than
+support; S4 selects its two largest masks; the weak duplicate helper was
+removed; and strict matching is the default headline, with relaxed matching
+retained only as a sensitivity analysis.
 
 ## 4. Suggested order
 

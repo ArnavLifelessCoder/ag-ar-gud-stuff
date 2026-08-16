@@ -357,14 +357,17 @@ def gen_S3(img, masks, severity=2, **_kw):
 def gen_S4(img, masks, **_kw):
     """S4 — Ambiguous reference: >=2 instances, verified colour-distinct.
 
-    Rejects if CIEDE2000 colour distance between top-2 candidates is below 12,
-    meaning they are too similar for the question to be genuinely ambiguous.
+    Rejects if CIEDE2000 colour distance between the two largest candidates is
+    below 12, meaning they are too similar for the question to be genuinely
+    ambiguous. Annotation-list order is not meaningful, so it must not choose
+    the pair.
     """
     if len(masks) < 2:
         return None, None
     arr = np.array(img).astype(float) / 255.0
+    top_two = sorted(masks, key=lambda pair: int(pair[1].sum()), reverse=True)[:2]
     labs = []
-    for _, m in masks[:3]:
+    for _, m in top_two:
         mean_rgb = arr[m].mean(0).reshape(1, 1, 3)
         labs.append(rgb2lab(mean_rgb))
     d = float(deltaE_ciede2000(labs[0], labs[1])[0, 0])

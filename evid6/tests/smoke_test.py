@@ -124,17 +124,15 @@ assert curve, "learning curve empty"
 ok("curve: " + ", ".join(f"n={n}:{m:.0%}" for n, m, _ in curve))
 
 print("\n[7] stats")
-from stats import boot_ci, paired_test, accuracy_by_state, consistency_rate
+from stats import boot_ci, paired_test, accuracy_by_state
 m, lo, hi = boot_ci([1, 0, 1, 1, 0, 1, 1, 0])
 assert lo <= m <= hi
 a = np.random.rand(120) < 0.6
 b = np.random.rand(120) < 0.4
 pv = paired_test(a, b)
 abs_ = accuracy_by_state(rows, states=STATES)
-cr = consistency_rate([{"item_id": "x", "answer": "Red"}], {"x": "red"})
-assert cr == 1.0, "consistency_rate case-folding broken"
 ok(f"boot_ci {m:.2f} [{lo:.2f},{hi:.2f}]; McNemar p={pv:.4f}; "
-   f"per-state {len(abs_)} states; consistency_rate ok")
+   f"per-state {len(abs_)} states")
 
 print("\n[8] figures (all six)")
 import matplotlib; matplotlib.use("Agg")
@@ -181,7 +179,8 @@ from consistency import normalise, agree, is_refusal
 assert normalise("A Red Car.") == "red car"
 assert normalise("  the  TWO   dogs ") == "2 dogs"
 assert agree("red", "Red.")
-assert agree("red", "red and white"), "relaxed subset match broken"
+assert agree("red", "red and white", relaxed=True), "relaxed subset match broken"
+assert not agree("red", "red and white"), "strict must be the default"
 assert not agree("red", "blue")
 assert not agree("cannot answer", "cannot answer"), "refusals must not agree"
 assert is_refusal("CANNOT ANSWER") and is_refusal("")
@@ -266,6 +265,14 @@ for r in flat:
 v2 = p1_p2_verdict(flat)
 assert "challenged" in v2["P2"]["verdict"], v2["P2"]["verdict"]
 ok(f"negative control: {v2['P2']['verdict']}")
+
+# Missing prior-only rows cannot be treated as evidence for P2.
+missing_s3_floor = [r for r in scored
+                    if not (r["state"] == "S3" and r["condition"] == "prioronly")]
+v3 = p1_p2_verdict(missing_s3_floor)
+assert v3["P2"]["stays_above_floor"] is None
+assert "unknown" in v3["P2"]["verdict"], v3["P2"]["verdict"]
+ok(f"missing prior floor: {v3['P2']['verdict']}")
 
 summ = csum(scored, refs, rstats)
 assert summ["s0_ceiling"][0] > 0.85 and summ["dose_S2_occl"]
@@ -504,13 +511,28 @@ if _g is not None:
   same = np.array(_img); same[_m] = [200, 30, 30]; same[_m2] = [200, 30, 30]
   rej, _ = _g.gen_S4(_I.fromarray(same), [({}, _m), ({}, _m2)])
   assert rej is None, "S4 must reject colour-identical candidates"
+  # The two largest instances, not annotation-list order, define S4.
+  _small1 = np.zeros((240, 320), bool); _small1[10:20, 10:20] = True
+  _small2 = np.zeros((240, 320), bool); _small2[30:45, 10:25] = True
+  _large = np.zeros((240, 320), bool); _large[60:160, 190:310] = True
+  ordered = np.array(_img)
+  ordered[_small1] = [200, 30, 30]
+  ordered[_small2] = [200, 30, 30]
+  ordered[_large] = [30, 30, 200]
+  _, by_area = _g.gen_S4(_I.fromarray(ordered),
+                          [({}, _small1), ({}, _small2), ({}, _large)])
+  _, reordered = _g.gen_S4(_I.fromarray(ordered),
+                            [({}, _large), ({}, _small1), ({}, _small2)])
+  assert by_area is not None and reordered is not None
+  assert abs(by_area["delta_e"] - reordered["delta_e"]) < 1e-9
   ok(f"gen_S4 accepts distinct candidates (dE={meta['delta_e']:.1f}), "
-     f"rejects identical ones")
+     f"rejects identical ones, and is annotation-order invariant")
 
 print("\n[22] strict vs relaxed matching reported together")
 from consistency import summarise_both
 both = summarise_both(treat_rows, refs, rstats)
-assert set(both) >= {"relaxed", "strict", "delta", "max_abs_delta", "sensitive"}
+assert set(both) >= {"relaxed", "strict", "delta", "max_abs_delta", "sensitive", "primary"}
+assert both["primary"] == "strict"
 r0 = both["relaxed"]["by_state_condition"].get("S0|main", (None,))[0]
 s0 = both["strict"]["by_state_condition"].get("S0|main", (None,))[0]
 assert r0 is not None and s0 is not None

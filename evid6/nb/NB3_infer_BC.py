@@ -17,6 +17,17 @@ import sys, os, json, gc, shutil
 import torch
 import numpy as np
 
+# SmolVLM2 imports this package while its processor is constructed. Check it
+# before spending hours on InternVL, so a minimal Kaggle image fails fast with
+# the exact installation command instead of failing halfway through NB3.
+try:
+    import num2words  # noqa: F401
+except ImportError as e:
+    raise ImportError(
+        "NB3 requires num2words for SmolVLM2. Run: "
+        "!pip install -q num2words"
+    ) from e
+
 print(f"PyTorch: {torch.__version__}")
 print(f"CUDA: {torch.cuda.is_available()}")
 if torch.cuda.is_available():

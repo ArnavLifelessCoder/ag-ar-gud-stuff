@@ -5,7 +5,10 @@ order. Written 6 Aug 2026, against the code in this repository.
 
 ## Status in one line
 
-**The CPU pipeline is built and verified. The GPU path has never executed.**
+**Both pipelines have now executed.** NB1 built the full dataset on real COCO
+(1,838 items, QA sheets reviewed); NB2 and NB3 completed every inference pass
+for all three models across 9.18 GPU-hours. Results and their two quality
+failures are in `NB2_NB3_ANALYSIS.md`. NB4 has not yet run on the real outputs.
 
 | Layer | State |
 |---|---|

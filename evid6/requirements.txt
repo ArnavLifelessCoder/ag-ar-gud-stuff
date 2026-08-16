@@ -23,6 +23,7 @@ transformers>=4.49         # Qwen2.5-VL and SmolVLM2 support.
 accelerate>=0.27
 sentencepiece
 protobuf
+num2words>=0.5.13          # required by SmolVLM2's processor
 
 # Notebook tooling
 jupytext>=1.16             # .py <-> .ipynb round-trip

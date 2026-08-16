@@ -301,6 +301,18 @@ If that raises, InternVL needs its own loader — tell me and I will give you a
 one-line edit to skip Model B and run only SmolVLM. If it prints the template,
 continue.
 
+**Cell 2.5 (required for SmolVLM2):** Kaggle's base image can omit
+`num2words`, which SmolVLM's processor imports at load time. Install it before
+the full NB3 script, otherwise InternVL can finish and the run will fail only
+when Model C begins.
+
+```python
+import subprocess, sys
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "num2words"],
+               check=True)
+print("num2words installed — SmolVLM2 can load")
+```
+
 **If an older cell already failed with** `Unrecognized configuration class
 InternVLChatConfig`, run this replacement cell (not the old plain-checkpoint
 cell), then continue to Cell 3:

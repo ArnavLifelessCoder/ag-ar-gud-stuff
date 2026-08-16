@@ -23,10 +23,12 @@ import sys, os, json, glob
 import numpy as np
 from collections import Counter
 
-# Adjust these paths based on how you attached notebook outputs as datasets
-NB1_PATH = "/kaggle/input/evid6-nb1-output"
-NB2_PATH = "/kaggle/input/evid6-nb2-output"
-NB3_PATH = "/kaggle/input/evid6-nb3-output"
+# Attached notebook outputs mount at a path derived from each notebook's TITLE,
+# so hard-coding them breaks the moment a notebook is named anything else --
+# which is exactly what happened ("vlm neurips nb1" -> /kaggle/input/
+# vlm-neurips-nb1, not evid6-nb1-output). Everything below is discovered by
+# searching the input roots instead, the same way NB2/NB3 locate the manifest.
+SEARCH_ROOTS = ["/kaggle/input", "/kaggle/working"]
 
 # Copy source if needed
 import shutil
@@ -43,21 +45,38 @@ sys.path.insert(0, "/kaggle/working/evid6/analysis")
 os.makedirs("/kaggle/working/figures", exist_ok=True)
 
 # %%
-# Locate data files
-def find_file(name, paths):
-    for p in paths:
-        full = os.path.join(p, name)
-        if os.path.isfile(full):
-            return full
-    # Try working dir
-    full = f"/kaggle/working/{name}"
-    if os.path.isfile(full):
-        return full
+# Locate data files by searching, not by guessing a mount path.
+def find_dir(name, roots=None):
+    """First directory called ``name`` under any input root, else None."""
+    for root in (roots or SEARCH_ROOTS):
+        if not os.path.isdir(root):
+            continue
+        for dirpath, dirnames, _files in os.walk(root):
+            if name in dirnames:
+                return os.path.join(dirpath, name)
     return None
 
-ITEMS_PATH = find_file("items.jsonl", [NB1_PATH])
-assert ITEMS_PATH, "items.jsonl not found"
+
+def find_file(name, roots=None):
+    """First file called ``name`` under any input root, else None."""
+    for root in (roots or SEARCH_ROOTS):
+        if not os.path.isdir(root):
+            continue
+        direct = os.path.join(root, name)
+        if os.path.isfile(direct):
+            return direct
+        for dirpath, _dirnames, files in os.walk(root):
+            if name in files:
+                return os.path.join(dirpath, name)
+    return None
+
+
+from schema import find_items
+
+ITEMS_PATH = find_items(SEARCH_ROOTS)     # raises listing what IS attached
+NB1_PATH = os.path.dirname(ITEMS_PATH)
 print(f"Items: {ITEMS_PATH}")
+print(f"NB1 root: {NB1_PATH}")
 
 # Load items
 from schema import load_items, STATES
@@ -78,7 +97,7 @@ def load_results(tag, search_paths):
                     return [json.loads(l) for l in f if l.strip()]
     return []
 
-search = [NB2_PATH, NB3_PATH, "/kaggle/working"]
+search = SEARCH_ROOTS
 
 MODELS = {
     "qwen": "Qwen2.5-VL-3B",
@@ -149,11 +168,9 @@ for tag_prefix in MODELS:
     tag = f"{tag_prefix}_cause"
     # Try to find activation files
     acts_base = None
-    for p in [NB2_PATH, NB3_PATH, "/kaggle/working"]:
-        candidate = os.path.join(p, "acts", tag)
-        if os.path.isdir(candidate) and glob.glob(f"{candidate}/h_*.npy"):
-            acts_base = os.path.join(p, "acts")
-            break
+    _cand = find_dir(tag)          # searches for a directory named <tag>
+    if _cand and glob.glob(f"{_cand}/h_*.npy"):
+        acts_base = os.path.dirname(_cand)
 
     if acts_base is None:
         print(f"No activations found for {tag}")
@@ -172,6 +189,22 @@ for tag_prefix in MODELS:
     folds_aligned = folds[idx]
 
     print(f"  Aligned: {len(I_aligned)} items")
+
+    # Drop rows whose activations are not finite. A forward pass can emit NaN
+    # in fp16 (5 of Qwen's 900 aligned rows did), and sklearn raises
+    # "Input X contains NaN" partway through the sweep rather than at load.
+    # Those rows also carry NaN option probabilities, so their R3 label is an
+    # argmax-over-NaN artifact, not a prediction -- they are unusable, not
+    # merely inconvenient. Report the count; never impute.
+    finite = np.isfinite(H_aligned.astype(np.float32)).all(axis=(1, 2))
+    if not finite.all():
+        print(f"  DROPPED {int((~finite).sum())} of {len(finite)} rows with "
+              f"non-finite activations: {sorted(I_aligned[~finite].tolist())}")
+        print("   -> report this exclusion; rerun those items to recover them")
+        H_aligned = H_aligned[finite]
+        I_aligned = I_aligned[finite]
+        y_aligned = y_aligned[finite]
+        folds_aligned = folds_aligned[finite]
 
     # Layer sweep
     print(f"  Running layer sweep ({H.shape[1]} layers)...")
@@ -211,11 +244,9 @@ for tag_prefix in MODELS:
 
     # Reload activations
     acts_base = None
-    for p in [NB2_PATH, NB3_PATH, "/kaggle/working"]:
-        candidate = os.path.join(p, "acts", tag)
-        if os.path.isdir(candidate) and glob.glob(f"{candidate}/h_*.npy"):
-            acts_base = os.path.join(p, "acts")
-            break
+    _cand = find_dir(tag)          # searches for a directory named <tag>
+    if _cand and glob.glob(f"{_cand}/h_*.npy"):
+        acts_base = os.path.dirname(_cand)
     if acts_base is None:
         continue
 
@@ -224,6 +255,12 @@ for tag_prefix in MODELS:
     H_a, I_a = H[mask], I[mask]
     idx = np.array([item_id_to_idx[iid] for iid in I_a])
     y_a, f_a = y_main[idx], folds[idx]
+
+    # Same non-finite filter as the sweep, so the curve is fitted on exactly
+    # the rows the probe was.
+    _fin = np.isfinite(H_a.astype(np.float32)).all(axis=(1, 2))
+    if not _fin.all():
+        H_a, I_a, y_a, f_a = H_a[_fin], I_a[_fin], y_a[_fin], f_a[_fin]
 
     bl = best_layers[tag_prefix][0]
     print(f"\nLearning curve for {tag_prefix} (layer {bl})...")
@@ -365,15 +402,17 @@ for tag_prefix, model_name in MODELS.items():
         continue
 
     refs, ref_stats = build_references(clean, require_stable=True)
-    scored = score_consistency(treat, refs)              # relaxed (headline)
+    scored = score_consistency(treat, refs)              # strict (headline)
     scored_by_model[tag_prefix] = scored
 
     # Score under BOTH matching rules. The choice moves the headline numbers,
     # so the paper reports both whenever they differ materially.
     both = summarise_both(treat, refs, ref_stats)
-    summary = both["relaxed"]
+    # Strict matching is the headline. Relaxed matching is reported only as a
+    # sensitivity analysis because degraded images can induce shorter answers.
+    summary = both["strict"]
     summary["max_abs_delta"] = both["max_abs_delta"]
-    summary["strict"] = both["strict"]
+    summary["relaxed"] = both["relaxed"]
     summary["matching_note"] = both["note"]
     consistency_summary[tag_prefix] = summary
 
@@ -400,10 +439,10 @@ for tag_prefix, model_name in MODELS.items():
 
     print(f"\n  matching rule: {both['note']}")
     if both["sensitive"]:
-        print("    strict-matching numbers:")
+        print("    relaxed-matching sensitivity numbers:")
         for (st, cond), (rate, n) in \
                 by_state_condition(score_consistency(treat, refs,
-                                                     relaxed=False)).items():
+                                                     relaxed=True)).items():
             if rate is not None and cond == "main":
                 print(f"      {st:<3} {rate:6.1%}  (n={n})")
 
@@ -411,8 +450,9 @@ for tag_prefix, model_name in MODELS.items():
     print("\n  P1/P2:")
     if "P1" in v:
         print(f"    P1 (occlusion destroys signal): {v['P1']['verdict']}")
-        print(f"       S2 main {v['P1']['s2_main']:.1%} vs floor "
-              f"{v['P1']['s2_prior_floor']:.1%}  (gap {v['P1']['gap']:+.1%})")
+        if v["P1"]["gap"] is not None:
+            print(f"       S2 main {v['P1']['s2_main']:.1%} vs floor "
+                  f"{v['P1']['s2_prior_floor']:.1%}  (gap {v['P1']['gap']:+.1%})")
     if "P2" in v:
         print(f"    P2 (degradation attenuates):     {v['P2']['verdict']}")
         for sev, rate, n in v["P2"]["curve"]:
@@ -522,11 +562,9 @@ acts_cache = {}
 for tag_prefix in MODELS:
     tag = f"{tag_prefix}_cause"
     acts_base = None
-    for pth in [NB2_PATH, NB3_PATH, "/kaggle/working"]:
-        cand = os.path.join(pth, "acts", tag)
-        if os.path.isdir(cand) and glob.glob(f"{cand}/h_*.npy"):
-            acts_base = os.path.join(pth, "acts")
-            break
+    cand = find_dir(tag)
+    if cand and glob.glob(f"{cand}/h_*.npy"):
+        acts_base = os.path.dirname(cand)
     if acts_base is None or tag_prefix not in best_layers:
         continue
 
@@ -535,6 +573,12 @@ for tag_prefix in MODELS:
     H_a, I_a = H[mask], I[mask]
     idx = np.array([item_id_to_idx[iid] for iid in I_a])
     y_a = y_main[idx]
+
+    # Non-finite rows would poison leave-category-out and the shared PCA space.
+    _fin = np.isfinite(H_a.astype(np.float32)).all(axis=(1, 2))
+    if not _fin.all():
+        H_a, I_a, y_a = H_a[_fin], I_a[_fin], y_a[_fin]
+
     acts_cache[tag_prefix] = (H_a, I_a, y_a)
 
     bl = best_layers[tag_prefix][0]
@@ -724,9 +768,8 @@ else:
 # %%
 try:
     from budget import report as budget_report, print_report
-    budget = print_report("/kaggle/input/evid6-nb2-output/gpu_budget.json") \
-        if os.path.isfile("/kaggle/input/evid6-nb2-output/gpu_budget.json") \
-        else budget_report()
+    _bud = find_file("gpu_budget.json")
+    budget = print_report(_bud) if _bud else budget_report()
 except Exception as e:
     print(f"budget log unavailable: {e}")
     budget = None
@@ -747,7 +790,7 @@ threat_rows = build_table(
     summary={"consistency": consistency_summary,
              "clip_baseline": ({"acc": clip_acc} if clip_acc is not None else None),
              "transfer": transfer_results},
-    build_stats_path="/kaggle/input/evid6-nb1-output/evid6/build_stats.json",
+    build_stats_path=find_file("build_stats.json"),
 )
 check(threat_rows)
 print()

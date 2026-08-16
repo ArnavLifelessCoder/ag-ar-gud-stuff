@@ -63,26 +63,6 @@ def accuracy_by_state(results, states=None):
     return out
 
 
-def consistency_rate(results, ref_answers):
-    """Fraction of items whose degraded answer matches the clean reference.
-
-    Parameters
-    ----------
-    results : list of dict
-        Each must have 'item_id' and a generated answer field.
-    ref_answers : dict
-        Mapping item_id -> reference answer string.
-    """
-    matched, total = 0, 0
-    for r in results:
-        iid = r["item_id"]
-        if iid in ref_answers:
-            total += 1
-            if r.get("answer", "").strip().lower() == ref_answers[iid].strip().lower():
-                matched += 1
-    return matched / max(total, 1)
-
-
 def pair_main_vs_control(results):
     """Pair each s0ctrl row with the main row it controls for.
 

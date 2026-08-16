@@ -107,13 +107,14 @@ def is_refusal(ans: str) -> bool:
     return any(m in a for m in REFUSAL_MARKERS)
 
 
-def agree(a: str, b: str, relaxed: bool = True) -> bool:
+def agree(a: str, b: str, relaxed: bool = False) -> bool:
     """Do two free-form answers agree?
 
-    Exact match after normalisation, or (when ``relaxed``) one being a token
-    subsequence of the other — "red" vs "red and white" counts as agreement,
-    since the model is still naming the same attribute.  Refusals never agree
-    with anything, including each other.
+    Exact match after normalisation by default.  The optional relaxed rule
+    treats one answer's token set being a subset of the other's as agreement
+    ("red" vs "red and white").  It is a sensitivity analysis only: shorter
+    answers can otherwise look spuriously consistent after degradation.
+    Refusals never agree with anything, including each other.
     """
     if is_refusal(a) or is_refusal(b):
         return False
@@ -183,7 +184,7 @@ def build_references(clean_results, require_stable: bool = True):
 
 # ── Scoring ─────────────────────────────────────────────────────────────────
 
-def score_consistency(treat_results, refs, relaxed: bool = True):
+def score_consistency(treat_results, refs, relaxed: bool = False):
     """Attach a boolean ``consistent`` to every treatment row that has a ref.
 
     Parameters
@@ -299,7 +300,14 @@ def p1_p2_verdict(scored, flat_tol: float = 0.05):
     s2_main, n2 = _rate([r for r in scored
                          if r["state"] == "S2" and r["condition"] == "main"])
     s2_floor, n2f = prior_floor(scored, "S2")
-    if s2_main is not None and s2_floor is not None:
+    if s2_main is not None and s2_floor is None:
+        v["P1"] = {
+            "s2_main": s2_main, "n_main": n2,
+            "s2_prior_floor": None, "n_floor": n2f,
+            "gap": None,
+            "verdict": "unknown (missing S2 prior-only floor)",
+        }
+    elif s2_main is not None:
         gap = s2_main - s2_floor
         v["P1"] = {
             "s2_main": s2_main, "n_main": n2,
@@ -312,10 +320,20 @@ def p1_p2_verdict(scored, flat_tol: float = 0.05):
 
     curve = dose_response(scored, "S3", "severity")
     s3_floor, n3f = prior_floor(scored, "S3")
-    if curve:
+    if curve and s3_floor is None:
+        v["P2"] = {
+            "curve": curve,
+            "s3_prior_floor": None, "n_floor": n3f,
+            "monotone_decline": all(
+                curve[i][1] >= curve[i + 1][1] for i in range(len(curve) - 1)
+            ),
+            "stays_above_floor": None,
+            "verdict": "unknown (missing S3 prior-only floor)",
+        }
+    elif curve:
         rates = [c[1] for c in curve]
         monotone = all(rates[i] >= rates[i + 1] for i in range(len(rates) - 1))
-        above = s3_floor is None or min(rates) > s3_floor + flat_tol
+        above = min(rates) > s3_floor + flat_tol
         v["P2"] = {
             "curve": curve,
             "s3_prior_floor": s3_floor, "n_floor": n3f,
@@ -328,7 +346,8 @@ def p1_p2_verdict(scored, flat_tol: float = 0.05):
                             ([] if above else ["reaches the prior floor"])) + ")"),
         }
 
-    if "P1" in v and "P2" in v:
+    if "P1" in v and "P2" in v and v["P1"]["gap"] is not None \
+            and v["P2"]["stays_above_floor"] is not None:
         s3_min = min(c[1] for c in v["P2"]["curve"])
         v["collapse"] = abs(v["P1"]["s2_main"] - s3_min) <= flat_tol
         v["note"] = ("S2 and S3 curves coincide — report five states, per the "
@@ -352,7 +371,7 @@ def summarise_both(treat_results, refs, ref_stats):
     dict with keys "relaxed", "strict", "delta" and "sensitive".
     """
     out = {}
-    for name, relaxed in [("relaxed", True), ("strict", False)]:
+    for name, relaxed in [("strict", False), ("relaxed", True)]:
         sc = score_consistency(treat_results, refs, relaxed=relaxed)
         out[name] = summarise(sc, refs, ref_stats)
 
@@ -375,11 +394,18 @@ def summarise_both(treat_results, refs, ref_stats):
     out["delta"] = deltas
     out["max_abs_delta"] = biggest
     out["sensitive"] = biggest > 0.05
+    out["primary"] = "strict"
+    # Strict is the headline (see ``agree``); relaxed is the sensitivity arm.
+    # This note used to say "justify the relaxed one" / "report relaxed", which
+    # contradicted that and is printed verbatim by NB4 — the easiest possible
+    # way for the write-up to quietly revert to the weaker rule.
     out["note"] = (
-        "results depend materially on the matching rule — report both and "
-        "justify the relaxed one" if biggest > 0.05 else
-        "matching rule changes nothing material (max delta "
-        f"{biggest:.1%}); report relaxed and note the strict number agrees"
+        f"headline is STRICT matching; relaxed differs by up to {biggest:.1%}, "
+        "which exceeds the 5-point threshold — report the relaxed column beside "
+        "it as a sensitivity analysis and say the conclusion is rule-dependent"
+        if biggest > 0.05 else
+        f"headline is STRICT matching; relaxed changes nothing material (max "
+        f"delta {biggest:.1%}), so the choice of rule does not carry the result"
     )
     return out
 
