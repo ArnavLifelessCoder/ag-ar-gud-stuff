@@ -910,6 +910,50 @@ for root, dirs, files in os.walk("/kaggle/working"):
         print(f"  {fp} ({os.path.getsize(fp) / 1e6:.2f} MB)")
 
 # %% [markdown]
+# ## 13. Bundle the outputs into one download
+# Kaggle's Output tab makes you click through files one at a time. This writes
+# a single archive holding everything the paper needs.
+
+# %%
+import zipfile
+
+BUNDLE = "/kaggle/working/evid6_nb4_output.zip"
+
+# The relabel KEY is deliberately left out. The 100-item self-relabel is only
+# blind if you fill in the sheet without having seen the answers, and an
+# archive you browse on your laptop is exactly where you would see them by
+# accident. The key stays in the Kaggle output and can be fetched when the
+# 48-hour cooling-off ends and you actually score the sheet.
+SEALED = {"relabel_key.json"}
+
+written, skipped = 0, []
+with zipfile.ZipFile(BUNDLE, "w", zipfile.ZIP_DEFLATED) as z:
+    for label, root in [("figures", FIG_DIR), ("relabel", RELABEL_DIR)]:
+        if not os.path.isdir(root):
+            print(f"  {label}/ not present — skipped")
+            continue
+        for dirpath, _dirnames, files in os.walk(root):
+            for fn in sorted(files):
+                if fn in SEALED:
+                    skipped.append(fn)
+                    continue
+                full = os.path.join(dirpath, fn)
+                z.write(full, os.path.relpath(full, "/kaggle/working"))
+                written += 1
+
+print(f"\nBundle: {BUNDLE}")
+print(f"  {written} files, {os.path.getsize(BUNDLE) / 1e6:.1f} MB")
+for fn in skipped:
+    print(f"  SEALED, not bundled: {fn} (stays in the Kaggle output)")
+with zipfile.ZipFile(BUNDLE) as z:
+    for n in sorted(z.namelist()):
+        print(f"    {n}")
+
+# %% [markdown]
 # ## Done
 # Figures are in `/kaggle/working/figures/`, every number the paper needs is
-# in `summary.json`. Nothing should be typed into LaTeX by hand.
+# in `summary.json`, and `evid6_nb4_output.zip` is the single file to download.
+# Nothing should be typed into LaTeX by hand.
+#
+# `figures/probe_cache.json` is inside the bundle: keep it, and attaching this
+# run's output to a future NB4 skips the multi-hour probe entirely.

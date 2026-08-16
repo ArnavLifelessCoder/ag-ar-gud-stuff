@@ -426,11 +426,32 @@ Strict is the headline; relaxed is the sensitivity arm.
 
 ### After it finishes
 
-Everything persists in the notebook output: `figures/` (every PDF,
-`summary.json`, `threats_table.md` and `.tex`) and `relabel/relabel_sheet.csv`.
+The last cell bundles everything into one file so you do not have to click
+through the Output tab:
 
-Download `relabel_sheet.csv` and **start the 48-hour clock** — `score_sheet`
-warns if you score it early. **Do not open `relabel_key.json`.**
+```
+/kaggle/working/evid6_nb4_output.zip
+```
+
+It holds `figures/` (every PDF, `summary.json`, `threats_table.md` and `.tex`,
+and `probe_cache.json`) plus `relabel/relabel_sheet.csv`. Download that single
+archive. To pull the whole output folder instead:
+
+```bash
+kaggle kernels output <user>/<nb4-notebook-slug> -p ./nb4-output
+```
+
+**`relabel_key.json` is deliberately excluded from the zip.** The 100-item
+self-relabel is only blind if you fill in the sheet without having seen the
+answers, and an archive you browse on your laptop is exactly where you would
+see them by accident. The key stays in the Kaggle output; fetch it when the
+48-hour cooling-off ends and you actually score the sheet.
+
+Open `relabel_sheet.csv` and **start the 48-hour clock** — `score_sheet` warns
+if you score it early.
+
+**Keep `probe_cache.json`.** Attach this run's output to any future NB4 and the
+multi-hour probe is skipped.
 
 Expect the consistency block to report a failed criterion: reference stability
 breaches its 35% gate on all three models (58.8 / 78.7 / 59.0%). That is a
