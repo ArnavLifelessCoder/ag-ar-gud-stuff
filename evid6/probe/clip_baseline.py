@@ -59,17 +59,36 @@ def _image_embeds(model, inputs):
     out = model.get_image_features(**inputs)
     if torch.is_tensor(out):
         return out
-    # 5.x: unwrap, then apply the visual projection ourselves if we were handed
-    # the pre-projection pooled vision output.
+
+    proj = model.visual_projection
+    in_dim = getattr(proj, "in_features", None)      # 768 for ViT-B/32
+    out_dim = getattr(proj, "out_features", None)    # 512
+
+    def _project_if_needed(t):
+        """Apply visual_projection only when the tensor is pre-projection.
+
+        transformers 5.x hands back an output object whose ``pooler_output``
+        is ALREADY the 512-d projected embedding, not the 768-d pooled vision
+        state. Projecting it again raises
+        "mat1 and mat2 shapes cannot be multiplied (32x512 and 768x512)".
+        Decide by width rather than assuming either convention.
+        """
+        if in_dim is not None and t.shape[-1] == in_dim:
+            return proj(t)
+        if out_dim is not None and t.shape[-1] == out_dim:
+            return t                                  # already projected
+        return proj(t)                                # unknown: try, and fail loudly
+
+    # 5.x: unwrap, projecting only if we were handed the pre-projection state.
     embeds = getattr(out, "image_embeds", None)
     if torch.is_tensor(embeds):
         return embeds
     pooled = getattr(out, "pooler_output", None)
     if torch.is_tensor(pooled):
-        return model.visual_projection(pooled)
+        return _project_if_needed(pooled)
     hidden = getattr(out, "last_hidden_state", None)
     if torch.is_tensor(hidden):
-        return model.visual_projection(hidden[:, 0])
+        return _project_if_needed(hidden[:, 0])
     raise TypeError(
         f"CLIPModel.get_image_features returned {type(out).__name__} with no "
         "recognisable image embedding; update _image_embeds for this "
