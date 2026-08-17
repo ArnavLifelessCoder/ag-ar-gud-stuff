@@ -459,6 +459,49 @@ known, documented negative — see `NB2_NB3_ANALYSIS.md` §3 — not a bug in NB
 
 ---
 
+## NB5 — SmolVLM activations (GPU, ~0.7 h) — optional but recommended
+
+NB3 ran SmolVLM behaviourally only (`CACHE_SMOL_HIDDEN = False`), so there is
+no rung-4 probe for it. That gap sits on the most interesting open question:
+SmolVLM is at **chance** behaviourally (R3 19.9% vs 16.7%, option D on 753 of
+900 main items). Qwen and InternVL both under-report what they encode. If
+SmolVLM encodes the states too, the claim strengthens to "even a model that
+cannot do the task represents it". If it does not, the representation tracks
+capability. Both answers are publishable; not knowing is not.
+
+**Attach:** NB1's output. NB3's output too is harmless. Accelerator **GPU**.
+
+This runs **only** SmolVLM's cause pass — re-running all of NB3 would redo
+InternVL's 4.85 GPU-hours for results that already exist.
+
+**Cell 1:** the setup cell.
+
+**Cell 2:**
+
+```python
+!pip install -q num2words
+```
+
+**Cell 3:**
+
+```python
+%run /kaggle/working/evid6/nb/NB5_smolvlm_acts.py
+```
+
+It verifies the option tokens, then smoke-tests **one item with hidden states
+and asserts they are finite** — the check NB3 skipped for this model, and whose
+absence let eight NaN rows through on Qwen unnoticed until NB4. After the pass
+it re-checks every shard and reports the R3 accuracy so you can confirm it
+matches NB3's 19.9%.
+
+Uses the same `smolvlm_cause` tag, so it is a drop-in for NB4.
+
+Then **Save & Run All**, and attach the output to NB4 alongside NB1/NB2/NB3 and
+the previous NB4 output. The cached Qwen and InternVL probes are reused, so
+only SmolVLM's probe is computed.
+
+---
+
 ## Order of operations
 
 Interactive for the pre-flights; **Save & Run All** for anything that produces
@@ -473,9 +516,8 @@ an output you will attach later.
    ~1.5 h CPU, no quota. ← you are here
 7. Export the relabel sheet, start the 48 h clock.
 8. Tier B hand-sorting (200 items) while the clock runs.
-9. Optional, 0.62 GPU-h: rerun `smolvlm_cause` with `cache_hidden=True` for a
-   third probe. SmolVLM is at chance behaviourally — if its activations still
-   separate the states, that is the strongest form of the paper's claim.
+9. **NB5, ~0.7 GPU-h: SmolVLM cause pass with activations** (section above),
+   then re-run NB4 with the probe cache attached (~10 min) for a third R4.
 10. Optional, 2.55 GPU-h: rerun `clean`+`treat` under **new tags** with a
     constrained answer task, to get the reference drop rate under 35%. Runners
     resume by tag, so reusing a tag silently processes zero items.
