@@ -17,3 +17,12 @@ qa/
 # .jsonl payloads; these two lines exclude the folders wholesale.
 results-nb3/
 vlm nb2 results/
+vlm nb5 output/
+evid6_nb4_output/
+evid6_nb4_output.zip
+
+# Never commit a relabel key. The 100-item blind self-relabel is only valid if
+# the sheet is filled in WITHOUT having seen the answers; a key in the repo is
+# one click away and voids the protocol.
+relabel/
+relabel_key.json

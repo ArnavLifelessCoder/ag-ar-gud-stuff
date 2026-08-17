@@ -1,13 +1,15 @@
-# NB2 + NB3 results analysis — Qwen2.5-VL-3B, InternVL3-2B, SmolVLM2-2.2B
+# EVID-6 results — Qwen2.5-VL-3B, InternVL3-2B, SmolVLM2-2.2B
 
-Analysed 16 Aug 2026 from `vlm nb2 results/` (NB2) and `results-nb3/` (NB3).
-Both are completed inference exports, not partial notebooks. Every number below
-was recomputed directly from the saved JSONL files using the repository's own
-analysis functions — nothing is copied from a notebook display.
+Analysed 16 Aug 2026 from `vlm nb2 results/` (NB2), `results-nb3/` (NB3) and
+`vlm nb5 output/` (the completed NB4 analysis). The inference numbers were
+recomputed directly from the saved JSONL rather than copied from a notebook
+display; the probe, CLIP, transfer and figure numbers come from NB4's own
+`figures/summary.json`.
 
-Neither export contains NB4 figures or `summary.json`. Neither contains
-`items.jsonl` or the images (only `items_local.jsonl`, the rebased manifest), so
-NB4 needs NB1's output attached as well.
+**Status: the pipeline has run end to end.** NB1 built 1,838 items from real
+COCO, NB2/NB3 scored them with three models (9.18 GPU-h), NB4 produced every
+figure and `summary.json`. One pre-registered criterion failed — reference
+stability — and that failure is reported in §3 rather than worked around.
 
 ## What ran
 
@@ -33,20 +35,36 @@ covers two models, not three.** See "the run worth doing" below.
 
 ## 1. The headline: behaviour is weak, activations are not
 
-This is the paper's claim and it is the one result that survives every caveat
-in this document.
+NB4 completed 16 Aug. R4 is the nested probe — each outer fold picks its layer
+using only its training folds, so the number carries no selection bias.
 
-| Model | R1 zero-shot | R2 few-shot | R3 logit | R4 probe | R1 → R4 gap |
+| Model | R1 zero-shot | R2 few-shot | R3 logit | **R4 probe** | **R1 → R4** |
 |---|---:|---:|---:|---:|---:|
-| Qwen2.5-VL-3B | 41.0% | 39.1% | 41.0% | **67.3%** | **+26.3** |
-| InternVL3-2B | 38.6% | 35.8% | 39.1% | **73.8%** | **+35.2** |
-| SmolVLM2-2.2B | 23.9% | 21.8% | 19.9% | — | — |
+| Qwen2.5-VL-3B | 41.0% | 39.1% | 41.0% | **73.0% ±2.7** | **+32.0** |
+| InternVL3-2B | 38.6% | 35.8% | 39.1% | **79.2% ±2.2** | **+40.7** |
+| SmolVLM2-2.2B | 23.9% | 21.8% | 19.9% | not measured | — |
+| *CLIP ViT-B/32 probe* | | | | *44.3% ±3.3* | |
+| *chance* | | | | *16.7%* | |
 
-Chance is 16.7%. R4 figures are a single mid-layer probe measured during
-review (Qwen layer 18 with its five non-finite rows dropped; InternVL mid
-layer). NB4's nested-selection R4 will differ slightly and is the number to
-quote; these establish the magnitude, which is large and replicated across two
-independent architectures.
+Selection bias was small and is reported rather than absorbed: max-over-layers
+would have read 74.6% for Qwen (+1.6) and 79.6% for InternVL (+0.4). Layers
+chosen per fold were 24/21/27/33/23 (Qwen) and 21/21/21/19/20 (InternVL) — say
+that InternVL localises tightly and Qwen does not, rather than quoting one
+layer index for both.
+
+**The CLIP baseline is the control that makes this claim survive.** A linear
+probe on frozen CLIP ViT-B/32 image features reaches 44.3%. So:
+
+- The VLM probe beats it by **+28.8** (Qwen) and **+35.0** (InternVL). The
+  representation is not merely what a generic vision encoder already exposes,
+  which is the obvious reviewer objection. The pre-registered kill criterion
+  (CLIP ≥ VLM probe → drop absolute numbers) does **not** fire.
+- CLIP at 44.3% is well above chance, so some evidence state is visible in
+  generic image statistics — occlusion, blur and cropping are, after all,
+  visually detectable. Say this; it is not a weakness.
+- **CLIP also beats what Qwen actually reports** (44.3% vs R1 41.0%). A frozen
+  encoder with a linear head outperforms the VLM's own answer. That is the
+  sharpest one-line statement of the gap available.
 
 Few-shot prompting does not help any model. On the 179 held-out rows R2 is
 below R1 restricted to the same rows in all three cases (Qwen 39.1 vs 41.3;
@@ -54,6 +72,33 @@ InternVL 35.8 vs 38.0; SmolVLM 21.8 vs 24.0).
 
 Parsing is not the bottleneck. Unparseable replies: Qwen 5/900 (0.6%),
 InternVL 0, SmolVLM 0.
+
+### The probe is not reading object identity
+
+Leave-one-category-out barely costs anything: Qwen **74.2% ±12.0** against
+74.6% within-distribution, InternVL **79.9% ±14.9** against 79.6%. Held-out
+categories are classified as well as seen ones, so the probe is not a category
+detector. Worst groups were `tv` (58.3%) and `chair` (53.8%).
+
+### The representation does not transfer across models
+
+In a shared PCA space, within-model accuracy is 65.4% (Qwen) and 71.9%
+(InternVL), but cross-model is **17.6%** and **20.8%** against 16.7% chance —
+a 47.8-point gap. Whatever encodes evidence state is real and linearly
+decodable inside each model, and is *not* a shared direction between them.
+Report this as a negative result, not an omission.
+
+### Learning curves: accessible, not merely learnable
+
+| n | 10 | 25 | 50 | 100 | 250 | 500 |
+|---|---:|---:|---:|---:|---:|---:|
+| Qwen (layer 22) | 29.9% | 44.3% | 52.2% | 56.9% | 66.2% | 72.5% |
+| InternVL (layer 19) | 52.4% | 54.2% | 60.2% | 67.8% | 72.8% | 77.5% |
+
+InternVL is already above chance-by-a-wide-margin at n=10 and above CLIP's
+44.3% by n=10, which argues the structure is genuinely accessible rather than
+fitted. Neither curve has saturated at n=500, so these R4 figures are lower
+bounds.
 
 ---
 
@@ -247,9 +292,9 @@ Right now that cannot be tested, because no activations were saved.
 
 ## 8. Remaining work, in order
 
-1. **Run NB4** on NB1 + NB2 + NB3 outputs. CPU only; budget ~1.5 h wall clock
-   (the nested probe on Qwen's 2,048-dim activations is ~52 min alone). Report
-   strict matching as primary and preserve any `unknown` P1/P2 result.
+1. ~~Run NB4~~ **done 16 Aug.** Took 6.5 h on Kaggle CPU, not the 1.5 h
+   estimated — the nested probe alone was 3.7 h for Qwen. Results above.
+   `figures/probe_cache.json` now lets a rerun skip it in ~10 min.
 2. **Add a finite-value guard to `score_one`** — log the item ID and retry once
    rather than writing an `A` prediction over NaN logits.
 3. **Rerun `clean` + `treat`** under new tags with a constrained answer task,

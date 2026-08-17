@@ -291,6 +291,17 @@ for tag_prefix in MODELS:
     # in any later cell must never cost this again.
     _save_probe_cache()
 
+# %%
+# Re-persist unconditionally, including entries that were LOADED from a cache.
+# The per-model save above is skipped on the load path, so a run that reused a
+# cache produced an output with no cache in it -- the 6.5-hour probe result
+# would then only survive in whichever older notebook output first wrote it.
+# Writing here means every run's output carries the result forward.
+if probe_r4:
+    _save_probe_cache()
+else:
+    print("no probe results to cache (no activations found for any model)")
+
 # %% [markdown]
 # ## 4. Learning curves
 
