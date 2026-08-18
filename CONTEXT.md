@@ -54,18 +54,20 @@ Qwen's 73.0%. The gap does not track capability.
   curves and LOCO: verified against `vlm nb5 output/figures/summary.json`,
   re-checked 18 Aug. Solid.
 - **SmolVLM's entire row** (R4 72.9% ±5.5, layers `[22,23,17,21,21]`, bias
-  +1.9, LOCO 69.5%, curve to 70.8%) and the **9.82 h budget** come from the
-  **nb5 run-2 Kaggle log**, which was pasted into the chat session and is
-  **not on disk anywhere locally**. There is currently **no local artifact**
-  holding these numbers.
+  +1.9, sweep max 74.7 @ layer 17, LOCO 69.5% / drop +5.3, curve to 70.8%) and
+  the **9.82 h budget**: verified against `run_logs/nb5_run2_smolvlm_probe.log`,
+  which is committed to this repo. Fifteen separate strings were checked
+  against that file on 18 Aug, including the TABLE 1 row and the activation
+  shape `(1838, 25, 2048)`.
 - ⚠️ `vlm nb5 output/` is the **earlier** nb5 run: its `summary.json` has
-  `smolvlm R4 = None` and budget 9.18 h, and it has no `probe_cache.json`.
+  `smolvlm R4 = None` and budget 9.18 h, and it has no `probe_cache.json`. Do
+  not read SmolVLM numbers out of it — use the log, or the nb5 v2 output.
 
-**→ First action in a new session: download the Kaggle `vlm nb5` version 2
-output** (`kaggle kernels output aaryanadutta/vlm-nb5 -p ./nb5-v2`) and
-replace the local folder. Until then the SmolVLM numbers are only as good as
-this document. Do not put them in the paper without re-reading them from that
-`summary.json`.
+**→ Worth doing when convenient: download the Kaggle `vlm nb5` version 2
+output** (`kaggle kernels output aaryanadutta/vlm-nb5 -p ./nb5-v2`). It carries
+the machine-readable `summary.json` with all three models and the three-model
+`probe_cache.json`. The log covers the numbers; the JSON is what you would
+regenerate a table from.
 
 ### Supporting results (all verified)
 
@@ -184,11 +186,11 @@ used per model, and records it in `summary.json` as `reference_task`.
   `/kaggle/working`, which is always empty in batch). Fixed in `3fb9228`: it
   now carries an existing sheet+key forward from the inputs.
 
-### 5d. Housekeeping, do first — it is cheap
+### 5d. Housekeeping — cheap, not urgent
 
-**Download the nb5 v2 output.** See §2 provenance: the SmolVLM result has no
-local artifact. One command, and it also gives you the three-model
-`probe_cache.json`.
+**Download the nb5 v2 output** for the machine-readable `summary.json` and the
+three-model `probe_cache.json`. The numbers themselves are already preserved in
+`run_logs/nb5_run2_smolvlm_probe.log`.
 
 ### 5e. Still open, lower priority
 
@@ -217,6 +219,7 @@ local artifact. One command, and it also gives you the three-model
 | `vlm nb5 output/` | NB4 run **1** — stale, see §2 provenance — gitignored |
 | `evid6_nb4_output/` | holds the qwen+internvl `probe_cache.json` — gitignored |
 | `qa_real_coco_pilot/` | real-COCO QA sheets, reviewed and passed — committed |
+| `run_logs/nb5_run2_smolvlm_probe.log` | **provenance for every SmolVLM number** — committed |
 
 **Never `git add -A` in this repo.** It sweeps the result folders in; it once
 committed `relabel_key.json` to a public repo. Stage explicit paths.

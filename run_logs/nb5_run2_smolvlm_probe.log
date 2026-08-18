@@ -1,0 +1,504 @@
+11.5s 1 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+11.5s 2 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+11.5s 3 0.00s - to python to disable frozen modules.
+11.5s 4 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+12.4s 5 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+12.4s 6 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+12.4s 7 0.00s - to python to disable frozen modules.
+12.4s 8 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+16.3s 9 23d1eec NB5: SmolVLM cause pass with activations
+16.8s 10 items: /kaggle/input/notebooks/aaryanadutta/vlm-neurips-nb1/items.jsonl
+23.1s 11 probe cache: /kaggle/input/notebooks/aaryanadutta/vlm-neurips-nb4/figures/probe_cache.json
+23.9s 12 activation dirs: ['internvl_cause', 'qwen_cause', 'smolvlm_cause']
+24.1s 13 Items: /kaggle/input/notebooks/aaryanadutta/vlm-neurips-nb1/items.jsonl
+24.1s 14 NB1 root: /kaggle/input/notebooks/aaryanadutta/vlm-neurips-nb1
+24.1s 15 Total items: 1838, main: 900
+24.1s 16 qwen_cause: 1838 items
+24.1s 17 qwen_abstain: 1838 items
+24.1s 18 qwen_repair: 1838 items
+24.1s 19 qwen_clean: 427 items
+24.1s 20 qwen_treat: 1261 items
+24.1s 21 qwen_rung1: 900 items
+24.1s 22 qwen_rung2: 179 items
+24.3s 23 internvl_cause: 1838 items
+24.5s 24 internvl_abstain: 1838 items
+24.5s 25 internvl_repair: 1838 items
+24.5s 26 internvl_clean: 427 items
+24.7s 27 internvl_treat: 1261 items
+24.7s 28 internvl_rung1: 900 items
+24.8s 29 internvl_rung2: 179 items
+24.9s 30 smolvlm_cause: 1838 items
+24.9s 31 smolvlm_abstain: 1838 items
+25.0s 32 smolvlm_repair: 1838 items
+25.2s 33 smolvlm_clean: 427 items
+25.2s 34 smolvlm_treat: 1261 items
+25.3s 35 smolvlm_rung1: 900 items
+25.5s 36 smolvlm_rung2: 179 items
+30.3s 37 ============================================================
+30.3s 38 Rung 3: Option-token argmax accuracy
+30.3s 39 ============================================================
+30.3s 40 
+30.3s 41 Qwen2.5-VL-3B: 41.0%
+30.3s 42 S0: 80.0% (150 items)
+30.3s 43 S1: 1.3% (150 items)
+30.3s 44 S2: 8.7% (150 items)
+30.3s 45 S3: 60.0% (150 items)
+30.3s 46 S4: 0.0% (150 items)
+30.3s 47 S5: 96.0% (150 items)
+30.3s 48 
+30.3s 49 InternVL3-2B: 39.1%
+30.3s 50 S0: 81.3% (150 items)
+30.3s 51 S1: 0.0% (150 items)
+30.3s 52 S2: 24.0% (150 items)
+30.3s 53 S3: 52.7% (150 items)
+30.3s 54 S4: 0.0% (150 items)
+30.3s 55 S5: 76.7% (150 items)
+30.3s 56 
+30.3s 57 SmolVLM2-2.2B: 19.9%
+30.3s 58 S0: 18.0% (150 items)
+30.3s 59 S1: 0.0% (150 items)
+30.3s 60 S2: 14.7% (150 items)
+30.3s 61 S3: 86.7% (150 items)
+30.3s 62 S4: 0.0% (150 items)
+30.3s 63 S5: 0.0% (150 items)
+30.3s 64 Fold distribution: {np.int64(4): 189, np.int64(1): 193, np.int64(2): 177, np.int64(0): 179, np.int64(3): 162}
+31.8s 65 Probe cache found at /kaggle/input/notebooks/aaryanadutta/vlm-neurips-nb4/figures/probe_cache.json: ['internvl', 'qwen']
+31.8s 66 Cached models will be reloaded, not recomputed.
+31.8s 67 
+31.8s 68 qwen_cause: loaded from cache — R4 = 73.0% (layers [24, 21, 27, 33, 23])
+31.8s 69 
+31.8s 70 internvl_cause: loaded from cache — R4 = 79.2% (layers [21, 21, 21, 19, 20])
+31.8s 71 
+31.8s 72 Loading activations for smolvlm_cause...
+35.0s 73 Shape: (1838, 25, 2048)
+35.0s 74 Aligned: 900 items
+35.3s 75 Running layer sweep (25 layers)...
+1694.4s 76 Best layer: 17 (acc=74.7% ± 3.2%)
+1694.4s 77 Nested layer selection (this is the reported R4)...
+9204.7s 78 R4 = 72.9% ± 5.5%  layers chosen per fold: [22, 23, 17, 21, 21]
+9204.8s 79 (max-over-layers would have read 74.7% — +1.9% of selection bias, not reported)
+9204.8s 80 NOTE: folds disagree on the best layer. Say so in the paper rather than quoting a single layer index.
+9204.8s 81 probe cache written: /kaggle/working/figures/probe_cache.json (['internvl', 'qwen', 'smolvlm'])
+9204.8s 82 probe cache written: /kaggle/working/figures/probe_cache.json (['internvl', 'qwen', 'smolvlm'])
+9208.2s 83 
+9208.2s 84 Learning curve for qwen (layer 22)...
+9349.8s 85 n=  10: 29.9% ± 2.2%
+9349.8s 86 n=  25: 44.3% ± 2.3%
+9349.8s 87 n=  50: 52.2% ± 3.6%
+9349.8s 88 n= 100: 56.9% ± 2.6%
+9349.8s 89 n= 250: 66.2% ± 3.2%
+9349.8s 90 n= 500: 72.5% ± 2.8%
+9354.5s 91 
+9354.5s 92 Learning curve for internvl (layer 19)...
+9381.7s 93 n=  10: 52.4% ± 0.0%
+9381.7s 94 n=  25: 54.2% ± 4.4%
+9381.7s 95 n=  50: 60.2% ± 5.4%
+9381.7s 96 n= 100: 67.8% ± 2.5%
+9381.7s 97 n= 250: 72.8% ± 2.7%
+9381.7s 98 n= 500: 77.5% ± 1.5%
+9383.1s 99 
+9383.1s 100 Learning curve for smolvlm (layer 17)...
+9490.2s 101 n=  10: 39.2% ± 0.0%
+9490.2s 102 n=  25: 40.7% ± 4.7%
+9490.2s 103 n=  50: 50.5% ± 6.5%
+9490.2s 104 n= 100: 60.7% ± 2.7%
+9490.2s 105 n= 250: 64.4% ± 4.7%
+9490.2s 106 n= 500: 70.8% ± 2.9%
+9517.2s 107 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+9517.2s 108 
+9517.2s 109 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+9517.2s 110 Running CLIP baseline probe...
+9523.1s 111 CLIPModel LOAD REPORT from: openai/clip-vit-base-patch32
+9523.1s 112 Key                                  | Status     |  |
+9523.1s 113 -------------------------------------+------------+--+-
+9523.1s 114 text_model.embeddings.position_ids   | UNEXPECTED |  |
+9523.1s 115 vision_model.embeddings.position_ids | UNEXPECTED |  |
+9523.1s 116 
+9523.1s 117 Notes:
+9523.1s 118 - UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+9523.1s 119 
+9523.1s 120 CLIPModel LOAD REPORT from: openai/clip-vit-base-patch32
+9523.1s 121 Key                                  | Status     |  |
+9523.1s 122 -------------------------------------+------------+--+-
+9523.1s 123 text_model.embeddings.position_ids   | UNEXPECTED |  |
+9523.1s 124 vision_model.embeddings.position_ids | UNEXPECTED |  |
+9523.1s 125 
+9523.1s 126 Notes:
+9523.1s 127 - UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+9523.1s 128 The image processor of type `CLIPImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`.
+9523.1s 129 
+9523.1s 130 The image processor of type `CLIPImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`.
+9609.9s 131 CLIP baseline: 44.3% ± 3.3%
+9609.9s 132 
+9609.9s 133 Qwen2.5-VL-3B:
+9609.9s 134 R1_zeroshot: 41.0%
+9609.9s 135 R2_fewshot: 39.1%
+9609.9s 136 R3_logits: 41.0%
+9609.9s 137 R4_probe: 73.0%
+9609.9s 138 (R1 unparseable replies: 0.6% — reported alongside the accuracy, not hidden)
+9609.9s 139 (R4 layer chosen inside training folds; max-over-layers would read 74.6%, +1.6%)
+9609.9s 140 ** R1 -> R4 gap: +32.0% **
+9609.9s 141 
+9609.9s 142 InternVL3-2B:
+9609.9s 143 R1_zeroshot: 38.6%
+9609.9s 144 R2_fewshot: 35.8%
+9609.9s 145 R3_logits: 39.1%
+9609.9s 146 R4_probe: 79.2%
+9609.9s 147 (R1 unparseable replies: 0.0% — reported alongside the accuracy, not hidden)
+9609.9s 148 (R4 layer chosen inside training folds; max-over-layers would read 79.6%, +0.4%)
+9609.9s 149 ** R1 -> R4 gap: +40.7% **
+9609.9s 150 
+9609.9s 151 SmolVLM2-2.2B:
+9609.9s 152 R1_zeroshot: 23.9%
+9609.9s 153 R2_fewshot: 21.8%
+9609.9s 154 R3_logits: 19.9%
+9609.9s 155 R4_probe: 72.9%
+9609.9s 156 (R1 unparseable replies: 0.0% — reported alongside the accuracy, not hidden)
+9609.9s 157 (R4 layer chosen inside training folds; max-over-layers would read 74.7%, +1.9%)
+9609.9s 158 ** R1 -> R4 gap: +49.0% **
+9609.9s 159 
+9609.9s 160 ============================================================
+9609.9s 161 Qwen2.5-VL-3B
+9609.9s 162 ============================================================
+9609.9s 163 references: 176/427 usable (drop rate 58.8%)
+9609.9s 164 KILL CRITERION (13 Aug): reference too noisy, switch to closed-set colour questions and report it
+9609.9s 165 S0 ceiling (measurement noise floor): 98.4% (n=63)
+9609.9s 166 prior-only floor (answering from priors): 47.7% (n=132)
+9609.9s 167 
+9609.9s 168 consistency by state and condition:
+9609.9s 169 S0  main        98.4%  (n=63)
+9609.9s 170 S0  s0ctrl      96.7%  (n=90)
+9609.9s 171 S1  main        41.3%  (n=63)
+9609.9s 172 S2  main        49.2%  (n=65)
+9609.9s 173 S2  prioronly   44.6%  (n=65)
+9609.9s 174 S3  main        55.2%  (n=67)
+9609.9s 175 S3  prioronly   50.7%  (n=67)
+9609.9s 176 S4  main        98.2%  (n=55)
+9609.9s 177 
+9609.9s 178 matching rule: headline is STRICT matching; relaxed differs by up to 7.5%, which exceeds the 5-point threshold — report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
+9609.9s 179 relaxed-matching sensitivity numbers:
+9609.9s 180 S0   98.4%  (n=63)
+9609.9s 181 S1   46.0%  (n=63)
+9609.9s 182 S2   53.8%  (n=65)
+9609.9s 183 S3   58.2%  (n=67)
+9609.9s 184 S4  100.0%  (n=55)
+9609.9s 185 
+9609.9s 186 P1/P2:
+9609.9s 187 P1 (occlusion destroys signal): supported (S2 sits at the prior floor)
+9609.9s 188 S2 main 49.2% vs floor 44.6%  (gap +4.6%)
+9609.9s 189 P2 (degradation attenuates):     challenged (reaches the prior floor)
+9609.9s 190 severity 1: 81.0% (n=21)
+9609.9s 191 severity 2: 52.2% (n=23)
+9609.9s 192 severity 3: 34.8% (n=23)
+9609.9s 193 -> S2 and S3 separate — the six-state taxonomy earns its extra state.
+9609.9s 194 
+9609.9s 195 ============================================================
+9609.9s 196 InternVL3-2B
+9609.9s 197 ============================================================
+9609.9s 198 references: 91/427 usable (drop rate 78.7%)
+9609.9s 199 KILL CRITERION (13 Aug): reference too noisy, switch to closed-set colour questions and report it
+9609.9s 200 S0 ceiling (measurement noise floor): 100.0% (n=30)
+9609.9s 201 prior-only floor (answering from priors): 41.9% (n=74)
+9609.9s 202 
+9609.9s 203 consistency by state and condition:
+9609.9s 204 S0  main       100.0%  (n=30)
+9609.9s 205 S0  s0ctrl      96.0%  (n=50)
+9609.9s 206 S1  main        45.9%  (n=37)
+9609.9s 207 S2  main        36.8%  (n=38)
+9609.9s 208 S2  prioronly   34.2%  (n=38)
+9609.9s 209 S3  main        63.9%  (n=36)
+9609.9s 210 S3  prioronly   50.0%  (n=36)
+9609.9s 211 S4  main        96.4%  (n=28)
+9609.9s 212 
+9609.9s 213 matching rule: headline is STRICT matching; relaxed differs by up to 8.3%, which exceeds the 5-point threshold — report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
+9609.9s 214 relaxed-matching sensitivity numbers:
+9609.9s 215 S0  100.0%  (n=30)
+9609.9s 216 S1   51.4%  (n=37)
+9609.9s 217 S2   42.1%  (n=38)
+9609.9s 218 S3   72.2%  (n=36)
+9609.9s 219 S4  100.0%  (n=28)
+9609.9s 220 
+9609.9s 221 P1/P2:
+9609.9s 222 P1 (occlusion destroys signal): supported (S2 sits at the prior floor)
+9609.9s 223 S2 main 36.8% vs floor 34.2%  (gap +2.6%)
+9609.9s 224 P2 (degradation attenuates):     challenged (non-monotone, reaches the prior floor)
+9609.9s 225 severity 1: 91.7% (n=12)
+9609.9s 226 severity 2: 45.5% (n=11)
+9609.9s 227 severity 3: 53.8% (n=13)
+9609.9s 228 -> S2 and S3 separate — the six-state taxonomy earns its extra state.
+9610.1s 229 
+9610.1s 230 ============================================================
+9610.1s 231 SmolVLM2-2.2B
+9610.1s 232 ============================================================
+9610.1s 233 references: 175/427 usable (drop rate 59.0%)
+9610.1s 234 KILL CRITERION (13 Aug): reference too noisy, switch to closed-set colour questions and report it
+9610.1s 235 S0 ceiling (measurement noise floor): 98.4% (n=61)
+9610.1s 236 prior-only floor (answering from priors): 45.5% (n=121)
+9610.1s 237 
+9610.1s 238 consistency by state and condition:
+9610.1s 239 S0  main        98.4%  (n=61)
+9610.1s 240 S0  s0ctrl      97.6%  (n=83)
+9610.1s 241 S1  main        53.1%  (n=64)
+9610.1s 242 S2  main        42.2%  (n=64)
+9610.1s 243 S2  prioronly   45.3%  (n=64)
+9610.1s 244 S3  main        52.6%  (n=57)
+9610.1s 245 S3  prioronly   45.6%  (n=57)
+9610.1s 246 S4  main        91.7%  (n=60)
+9610.1s 247 
+9610.1s 248 matching rule: headline is STRICT matching; relaxed differs by up to 6.2%, which exceeds the 5-point threshold — report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
+9610.1s 249 relaxed-matching sensitivity numbers:
+9610.1s 250 S0   98.4%  (n=61)
+9610.1s 251 S1   59.4%  (n=64)
+9610.1s 252 S2   46.9%  (n=64)
+9610.1s 253 S3   52.6%  (n=57)
+9610.1s 254 S4   96.7%  (n=60)
+9610.1s 255 
+9610.1s 256 P1/P2:
+9610.1s 257 P1 (occlusion destroys signal): supported (S2 sits at the prior floor)
+9610.1s 258 S2 main 42.2% vs floor 45.3%  (gap -3.1%)
+9610.1s 259 P2 (degradation attenuates):     challenged (reaches the prior floor)
+9610.1s 260 severity 1: 70.0% (n=20)
+9610.1s 261 severity 2: 55.6% (n=18)
+9610.1s 262 severity 3: 31.6% (n=19)
+9610.1s 263 -> S2 and S3 separate — the six-state taxonomy earns its extra state.
+9610.1s 264 
+9610.1s 265 Qwen2.5-VL-3B:
+9610.1s 266 AbsAcc  64.1%   (always-abstain baseline 57.1%)
+9610.1s 267 OverAbs 8.5%  (abstains on answerable items)
+9610.1s 268 UnderAbs 56.5% (answers unanswerable items)
+9610.1s 269 artifact gap +0.5% — abstention is not driven by artifact detection
+9610.1s 270 
+9610.1s 271 InternVL3-2B:
+9610.1s 272 AbsAcc  71.4%   (always-abstain baseline 57.1%)
+9610.1s 273 OverAbs 45.7%  (abstains on answerable items)
+9610.1s 274 UnderAbs 15.7% (answers unanswerable items)
+9610.1s 275 artifact gap +5.8% — abstention is not driven by artifact detection
+9610.1s 276 
+9610.1s 277 SmolVLM2-2.2B:
+9610.1s 278 AbsAcc  62.9%   (always-abstain baseline 57.1%)
+9610.1s 279 OverAbs 8.9%  (abstains on answerable items)
+9610.1s 280 UnderAbs 58.2% (answers unanswerable items)
+9610.1s 281 artifact gap -0.3% — abstention is not driven by artifact detection
+9610.1s 282 
+9610.1s 283 ============================================================
+9610.1s 284 Paired tests (McNemar)
+9610.1s 285 ============================================================
+9610.3s 286 
+9610.3s 287 Qwen2.5-VL-3B: main vs s0-ctrl (cause prompt, 211 exact pairs)
+9610.3s 288 main 28.9% | ctrl 72.0% | McNemar p=0.0000 *
+9610.3s 289 consistency: main 52.3% [43.2%,60.6%] vs prior-only 47.7% | p=0.3613 (132 pairs)
+9610.3s 290 -> main consistency is NOT distinguishable from the prior floor: the answer was never using the evidence
+9610.3s 291 
+9610.3s 292 InternVL3-2B: main vs s0-ctrl (cause prompt, 211 exact pairs)
+9610.3s 293 main 38.9% | ctrl 53.6% | McNemar p=0.0078 *
+9610.3s 294 consistency: main 50.0% [39.2%,62.2%] vs prior-only 41.9% | p=0.1814 (74 pairs)
+9610.3s 295 -> main consistency is NOT distinguishable from the prior floor: the answer was never using the evidence
+9610.3s 296 
+9610.3s 297 SmolVLM2-2.2B: main vs s0-ctrl (cause prompt, 211 exact pairs)
+9610.3s 298 main 52.6% | ctrl 10.4% | McNemar p=0.0000 *
+9610.3s 299 consistency: main 47.1% [38.0%,56.2%] vs prior-only 45.5% | p=0.8597 (121 pairs)
+9610.3s 300 -> main consistency is NOT distinguishable from the prior floor: the answer was never using the evidence
+9685.0s 301 
+9685.0s 302 Qwen2.5-VL-3B (layer 22):
+9685.0s 303 leave-one-category-out: 74.2% ± 12.0% over 5 categories (worst: tv at 58.3%)
+9685.0s 304 vs within-distribution 74.6% -> drop +0.4%
+9709.6s 305 
+9709.6s 306 InternVL3-2B (layer 19):
+9709.6s 307 leave-one-category-out: 79.9% ± 14.9% over 5 categories (worst: chair at 53.8%)
+9709.6s 308 vs within-distribution 79.6% -> drop -0.3%
+9766.7s 309 
+9766.7s 310 SmolVLM2-2.2B (layer 17):
+9766.7s 311 leave-one-category-out: 69.5% ± 12.0% over 5 categories (worst: chair at 50.0%)
+9766.7s 312 vs within-distribution 74.7% -> drop +5.3%
+9768.4s 313 
+9768.4s 314 Cross-model (qwen <-> internvl), shared PCA space:
+9768.4s 315 within_a: 65.4%
+9768.4s 316 within_b: 71.9%
+9768.4s 317 a_to_b: 17.6%
+9768.4s 318 b_to_a: 20.8%
+9768.4s 319 transfer gap: +47.8% (chance 16.7%)
+9769.4s 320 Saved: /kaggle/working/figures/ladder.pdf
+9769.9s 321 Saved: /kaggle/working/figures/learning_curve.pdf
+9769.9s 322 Saved: /kaggle/working/figures/layer_sweep.pdf
+9770.4s 323 Saved: /kaggle/working/figures/dose_response_qwen.pdf
+9770.6s 324 Saved: /kaggle/working/figures/dose_response_internvl.pdf
+9770.9s 325 Saved: /kaggle/working/figures/dose_response_smolvlm.pdf
+9771.4s 326 Saved: /kaggle/working/figures/confusion_qwen.pdf
+9771.8s 327 Saved: /kaggle/working/figures/confusion_internvl.pdf
+9772.2s 328 Saved: /kaggle/working/figures/confusion_smolvlm.pdf
+9772.5s 329 Saved: /kaggle/working/figures/consistency.pdf
+9772.8s 330 Saved: /kaggle/working/figures/abstain.pdf
+9772.8s 331 
+9772.8s 332 ==============================================================================
+9772.8s 333 TABLE 1: Evidence-State Classification (main condition)
+9772.8s 334 ==============================================================================
+9772.8s 335 Model                   R1 gen    R2 ICL  R3 logit  R4 probe      CLIP
+9772.8s 336 ----------------------------------------------------------------------
+9772.8s 337 Qwen2.5-VL-3B            41.0%     39.1%     41.0%     73.0%     44.3%
+9772.8s 338 InternVL3-2B             38.6%     35.8%     39.1%     79.2%     44.3%
+9772.8s 339 SmolVLM2-2.2B            23.9%     21.8%     19.9%     72.9%     44.3%
+9772.8s 340 
+9772.8s 341 Chance level: 16.7%
+9772.8s 342 CLIP ViT-B/32 probe: 44.3% ± 3.3%
+9772.8s 343 
+9772.8s 344 ==============================================================================
+9772.8s 345 TABLE 2: Self-consistency (does the answer survive evidence removal?)
+9772.8s 346 ==============================================================================
+9772.8s 347 Model                  S0 ceil      S1      S2      S3      S4    floor
+9772.8s 348 -----------------------------------------------------------------------
+9772.8s 349 Qwen2.5-VL-3B            98.4%   41.3%   49.2%   55.2%   98.2%    47.7%
+9772.8s 350 InternVL3-2B            100.0%   45.9%   36.8%   63.9%   96.4%    41.9%
+9772.8s 351 SmolVLM2-2.2B            98.4%   53.1%   42.2%   52.6%   91.7%    45.5%
+9772.8s 352 Sheet:  /kaggle/working/relabel/relabel_sheet.csv   (100 items)
+9772.8s 353 Key:    /kaggle/working/relabel/relabel_key.json   (do not open until the sheet is filled in)
+9772.8s 354 Wait at least 48 h before relabelling.
+9773.9s 355 Merged 3 budget log(s), 22 stages -> /kaggle/working/gpu_budget_merged.json
+9773.9s 356 ====================================================
+9773.9s 357 COMPUTE BUDGET
+9773.9s 358 ====================================================
+9773.9s 359 GPU hours: 9.82  (32.7% of a 30 h week)
+9773.9s 360 CPU hours: 0.00
+9773.9s 361 smolvlm_cause                 1.251 h
+9773.9s 362 internvl_abstain              1.008 h
+9773.9s 363 internvl_cause                0.971 h
+9773.9s 364 internvl_repair               0.950 h
+9773.9s 365 internvl_clean_ref            0.688 h
+9773.9s 366 smolvlm_abstain               0.654 h
+9773.9s 367 internvl_treat                0.649 h
+9773.9s 368 smolvlm_repair                0.608 h
+9773.9s 369 internvl_rung1                0.479 h
+9773.9s 370 smolvlm_clean_ref             0.448 h
+9773.9s 371 smolvlm_treat                 0.438 h
+9773.9s 372 smolvlm_rung1                 0.307 h
+9773.9s 373 qwen_abstain                  0.264 h
+9773.9s 374 qwen_cause                    0.233 h
+9773.9s 375 qwen_repair                   0.215 h
+9773.9s 376 qwen_clean_ref                0.170 h
+9773.9s 377 qwen_treat                    0.165 h
+9773.9s 378 qwen_rung1                    0.120 h
+9773.9s 379 internvl_rung2                0.110 h
+9773.9s 380 smolvlm_rung2                 0.064 h
+9773.9s 381 qwen_rung2                    0.027 h
+9773.9s 382 
+9773.9s 383 The full pipeline consumed 9.8 GPU-hours on free-tier T4s.
+9773.9s 384 SAFEGUARD FAILURES:
+9773.9s 385 - Pseudo-ground-truth is unstable, so 'consistency' measures decoding noise
+9773.9s 386 
+9773.9s 387 | Threat | Mechanism | Evidence | Status |
+9773.9s 388 |---|---|---|---|
+9773.9s 389 | Derived items from one image split across folds inflate the probe | StratifiedGroupKFold grouped on base_image_id, with a hard assert that fails the build rather than warning | 5 folds over 427 base images, 0 folds with overlap | verified |
+9773.9s 390 | Dose-response silently degenerates if intervention metadata is lost between generation and analysis | run_inference.base_row copies the full intervention record into every result row; NB4 errors loudly and the figure drops metadata-less items rather than plotting them at a default | severity present on 150/150 S3 rows, occl_frac on 150/150 S2 rows | verified |
+9773.9s 391 | A silent parser bug mislabels a few percent of items | letter_ids asserts every option token round-trips or the model is dropped; generated replies that commit to no option are recorded as None and counted wrong, with the rate reported | not checked in this run | — |
+9773.9s 392 | Paired tests pair the wrong items when one image yields several | controls record parent_item_id; McNemar pairs on it, never on base_image_id | 211/211 controls carry an explicit parent id | verified |
+9773.9s 393 | The model detects the artifact rather than the missing evidence | S0-ctrl applies the SAME artifact as its parent state (occluder for S2, degradation for S3) to a region touching no instance; occluders are real object crops from other images, never black boxes | generator enforces artifact match; abstain.artifact_sensitivity reports the residual gap | — |
+9773.9s 394 | Pseudo-ground-truth is unstable, so 'consistency' measures decoding noise | references taken from three samples on the untouched image; unstable groups dropped and the drop rate reported; S0 consistency is reported as the measurement's own ceiling | 176/427 reference groups usable, drop rate 58.8% | FAILED |
+9773.9s 395 | Headline numbers depend on an arbitrary answer-matching rule | every consistency figure computed under both strict and relaxed matching; both reported whenever they differ materially | strict vs relaxed matching differ by at most 7.5%; both reported | verified |
+9773.9s 396 | The probe exploits surface shortcuts rather than an evidence representation | CLIP-feature probe as a vision-encoder baseline; leave-one-category-out and severity extrapolation; cross-model transfer in a shared PCA space; learning curve to separate 'accessible' from 'merely learnable' | CLIP ViT-B/32 probe 44.3%; qwen leave-category-out 74.2%; internvl leave-category-out 79.9%; smolvlm leave-category-out 69.5% | verified |
+9773.9s 397 | Generated items do not actually instantiate the state they claim | machine-verifiable acceptance: S2 rejected below 90% realised coverage, S4 below CIEDE2000 12, S5 checked against annotations, S1 against the union bbox; rejection rates published; plus a visual QA pass over ~300 samples and a blind self-relabel | rejections {'S0': 0, 'S1': 49, 'S2': 458, 'S3': 0, 'S4': 877, 'S5': 0}, 1838 items accepted | verified |
+9773.9s 398 | Results cannot be regenerated from the artifacts | every generator deterministic given a seed; runners resume from partial output; all paper numbers regenerate into summary.json; offline smoke test covers the full CPU path on synthetic data | tests/smoke_test.py, 21 sections | — |
+9773.9s 399 
+9773.9s 400 Written to /kaggle/working/figures/threats_table.{md,tex}
+9773.9s 401 Summary saved to /kaggle/working/figures/summary.json
+9773.9s 402 top-level keys: ['abstention', 'best_layers_sweep_max_biased', 'budget', 'chance', 'clip_baseline', 'consistency', 'curves', 'probe_r4_nested', 'rung_data', 'rung_detail', 'statistics', 'threats', 'transfer']
+9773.9s 403 
+9773.9s 404 All output files:
+9773.9s 405 /kaggle/working/__notebook__.ipynb (0.03 MB)
+9773.9s 406 /kaggle/working/gpu_budget_merged.json (0.01 MB)
+9773.9s 407 /kaggle/working/figures/abstain.pdf (0.02 MB)
+9773.9s 408 /kaggle/working/figures/confusion_internvl.pdf (0.04 MB)
+9773.9s 409 /kaggle/working/figures/confusion_qwen.pdf (0.04 MB)
+9773.9s 410 /kaggle/working/figures/confusion_smolvlm.pdf (0.02 MB)
+9773.9s 411 /kaggle/working/figures/consistency.pdf (0.02 MB)
+9773.9s 412 /kaggle/working/figures/dose_response_internvl.pdf (0.02 MB)
+9773.9s 413 /kaggle/working/figures/dose_response_qwen.pdf (0.02 MB)
+9773.9s 414 /kaggle/working/figures/dose_response_smolvlm.pdf (0.02 MB)
+9773.9s 415 /kaggle/working/figures/ladder.pdf (0.02 MB)
+9773.9s 416 /kaggle/working/figures/layer_sweep.pdf (0.02 MB)
+9773.9s 417 /kaggle/working/figures/learning_curve.pdf (0.02 MB)
+9773.9s 418 /kaggle/working/figures/probe_cache.json (0.01 MB)
+9773.9s 419 /kaggle/working/figures/summary.json (0.04 MB)
+9773.9s 420 /kaggle/working/figures/threats_table.md (0.00 MB)
+9773.9s 421 /kaggle/working/figures/threats_table.tex (0.00 MB)
+9773.9s 422 /kaggle/working/relabel/relabel_key.json (0.00 MB)
+9773.9s 423 /kaggle/working/relabel/relabel_sheet.csv (0.01 MB)
+9773.9s 424 /kaggle/working/evid6/README.md (0.01 MB)
+9773.9s 425 /kaggle/working/evid6/__init__.py (0.00 MB)
+9773.9s 426 /kaggle/working/evid6/requirements.txt (0.00 MB)
+9773.9s 427 /kaggle/working/evid6/tests/make_fake_coco.py (0.00 MB)
+9773.9s 428 /kaggle/working/evid6/tests/smoke_test.py (0.03 MB)
+9773.9s 429 /kaggle/working/evid6/tests/smoke_test_report.md (0.00 MB)
+9773.9s 430 /kaggle/working/evid6/tests/test_pipeline_e2e.py (0.02 MB)
+9773.9s 431 /kaggle/working/evid6/nb/NB1_build.ipynb (0.01 MB)
+9773.9s 432 /kaggle/working/evid6/nb/NB1_build.py (0.01 MB)
+9773.9s 433 /kaggle/working/evid6/nb/NB2_infer_A.ipynb (0.02 MB)
+9773.9s 434 /kaggle/working/evid6/nb/NB2_infer_A.py (0.01 MB)
+9773.9s 435 /kaggle/working/evid6/nb/NB3_infer_BC.ipynb (0.01 MB)
+9773.9s 436 /kaggle/working/evid6/nb/NB3_infer_BC.py (0.01 MB)
+9773.9s 437 /kaggle/working/evid6/nb/NB4_analyse.ipynb (0.05 MB)
+9773.9s 438 /kaggle/working/evid6/nb/NB4_analyse.py (0.04 MB)
+9773.9s 439 /kaggle/working/evid6/nb/NB5_smolvlm_acts.ipynb (0.01 MB)
+9773.9s 440 /kaggle/working/evid6/nb/NB5_smolvlm_acts.py (0.01 MB)
+9773.9s 441 /kaggle/working/evid6/analysis/__init__.py (0.00 MB)
+9773.9s 442 /kaggle/working/evid6/analysis/abstain.py (0.01 MB)
+9773.9s 443 /kaggle/working/evid6/analysis/consistency.py (0.02 MB)
+9773.9s 444 /kaggle/working/evid6/analysis/figures.py (0.01 MB)
+9773.9s 445 /kaggle/working/evid6/analysis/qa_sheet.py (0.01 MB)
+9773.9s 446 /kaggle/working/evid6/analysis/relabel.py (0.01 MB)
+9773.9s 447 /kaggle/working/evid6/analysis/stats.py (0.00 MB)
+9773.9s 448 /kaggle/working/evid6/analysis/threats.py (0.01 MB)
+9773.9s 449 /kaggle/working/evid6/analysis/__pycache__/abstain.cpython-312.pyc (0.01 MB)
+9773.9s 450 /kaggle/working/evid6/analysis/__pycache__/consistency.cpython-312.pyc (0.02 MB)
+9773.9s 451 /kaggle/working/evid6/analysis/__pycache__/figures.cpython-312.pyc (0.02 MB)
+9773.9s 452 /kaggle/working/evid6/analysis/__pycache__/relabel.cpython-312.pyc (0.01 MB)
+9773.9s 453 /kaggle/working/evid6/analysis/__pycache__/stats.cpython-312.pyc (0.01 MB)
+9773.9s 454 /kaggle/working/evid6/analysis/__pycache__/threats.cpython-312.pyc (0.01 MB)
+9773.9s 455 /kaggle/working/evid6/probe/__init__.py (0.00 MB)
+9773.9s 456 /kaggle/working/evid6/probe/clip_baseline.py (0.00 MB)
+9773.9s 457 /kaggle/working/evid6/probe/ladder.py (0.01 MB)
+9773.9s 458 /kaggle/working/evid6/probe/learning_curve.py (0.00 MB)
+9773.9s 459 /kaggle/working/evid6/probe/steer.py (0.00 MB)
+9773.9s 460 /kaggle/working/evid6/probe/transfer.py (0.01 MB)
+9773.9s 461 /kaggle/working/evid6/probe/__pycache__/clip_baseline.cpython-312.pyc (0.01 MB)
+9773.9s 462 /kaggle/working/evid6/probe/__pycache__/ladder.cpython-312.pyc (0.01 MB)
+9773.9s 463 /kaggle/working/evid6/probe/__pycache__/learning_curve.cpython-312.pyc (0.00 MB)
+9773.9s 464 /kaggle/working/evid6/probe/__pycache__/transfer.cpython-312.pyc (0.01 MB)
+9773.9s 465 /kaggle/working/evid6/eval/__init__.py (0.00 MB)
+9773.9s 466 /kaggle/working/evid6/eval/budget.py (0.00 MB)
+9773.9s 467 /kaggle/working/evid6/eval/prompts.py (0.01 MB)
+9773.9s 468 /kaggle/working/evid6/eval/run_inference.py (0.02 MB)
+9773.9s 469 /kaggle/working/evid6/eval/__pycache__/budget.cpython-312.pyc (0.01 MB)
+9773.9s 470 /kaggle/working/evid6/data/__init__.py (0.00 MB)
+9773.9s 471 /kaggle/working/evid6/data/generate.py (0.03 MB)
+9773.9s 472 /kaggle/working/evid6/data/schema.py (0.01 MB)
+9773.9s 473 /kaggle/working/evid6/data/splits.py (0.00 MB)
+9773.9s 474 /kaggle/working/evid6/data/vizwiz.py (0.01 MB)
+9773.9s 475 /kaggle/working/evid6/data/__pycache__/schema.cpython-312.pyc (0.01 MB)
+9773.9s 476 /kaggle/working/evid6/data/__pycache__/splits.cpython-312.pyc (0.00 MB)
+9773.9s 477 
+9773.9s 478 Bundle: /kaggle/working/evid6_nb4_output.zip
+9773.9s 479 16 files, 0.2 MB
+9773.9s 480 SEALED, not bundled: relabel_key.json (stays in the Kaggle output)
+9773.9s 481 figures/abstain.pdf
+9773.9s 482 figures/confusion_internvl.pdf
+9773.9s 483 figures/confusion_qwen.pdf
+9773.9s 484 figures/confusion_smolvlm.pdf
+9773.9s 485 figures/consistency.pdf
+9773.9s 486 figures/dose_response_internvl.pdf
+9773.9s 487 figures/dose_response_qwen.pdf
+9773.9s 488 figures/dose_response_smolvlm.pdf
+9773.9s 489 figures/ladder.pdf
+9773.9s 490 figures/layer_sweep.pdf
+9773.9s 491 figures/learning_curve.pdf
+9773.9s 492 figures/probe_cache.json
+9773.9s 493 figures/summary.json
+9773.9s 494 figures/threats_table.md
+9773.9s 495 figures/threats_table.tex
+9773.9s 496 relabel/relabel_sheet.csv
+9779.5s 497 /usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\|'
+9779.5s 498 cells[i][c] = re.sub('\\\\\|', '|', cell)
+9779.7s 499 /usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\_'
+9779.7s 500 text = re.sub(r'_', '\_', text) # Escape underscores in display text
+9780.5s 501 [NbConvertApp] Converting notebook __notebook__.ipynb to notebook
+9780.9s 502 [NbConvertApp] Writing 150308 bytes to __notebook__.ipynb
+9783.9s 503 [NbConvertApp] Converting notebook __notebook__.ipynb to html
+9785.0s 504 [NbConvertApp] Writing 401429 bytes to __results__.html
