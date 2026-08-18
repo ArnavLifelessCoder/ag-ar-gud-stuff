@@ -19,7 +19,7 @@
 # ## Setup
 
 # %%
-import sys, os, json, glob
+import sys, os, json, glob, time
 import numpy as np
 from collections import Counter
 
@@ -866,11 +866,46 @@ for tag_prefix, model_name in MODELS.items():
 from relabel import export_sheet
 
 RELABEL_DIR = "/kaggle/working/relabel"
-if not os.path.isfile(os.path.join(RELABEL_DIR, "relabel_sheet.csv")):
+os.makedirs(RELABEL_DIR, exist_ok=True)
+
+# Carry an existing sheet+key forward rather than regenerating.
+#
+# /kaggle/working starts EMPTY on every batch run, so the "already exists"
+# guard below never fired and export_sheet ran again each time -- rewriting
+# `exported_at` and silently restarting the 48-hour cooling-off clock. The
+# sample is deterministic (seed 0 over the same manifest) so the items never
+# changed, but score_sheet reads the timestamp and would report that you
+# relabelled early even after waiting the full period.
+_prior_key = find_file("relabel_key.json")
+_prior_sheet = find_file("relabel_sheet.csv")
+if _prior_key and _prior_sheet and not os.path.isfile(
+        os.path.join(RELABEL_DIR, "relabel_sheet.csv")):
+    shutil.copy(_prior_key, os.path.join(RELABEL_DIR, "relabel_key.json"))
+    shutil.copy(_prior_sheet, os.path.join(RELABEL_DIR, "relabel_sheet.csv"))
+    with open(_prior_key, encoding="utf-8") as f:
+        _k = json.load(f)
+    _elapsed = (time.time() - _k["exported_at"]) / 3600.0
+    print(f"Reusing the existing relabel sheet from {_prior_sheet}")
+    print(f"  exported {_k['exported_at_human']}, {_elapsed:.1f} h ago")
+    print(f"  cooling-off {_k['cooling_off_hours']} h -> "
+          + ("READY to relabel" if _elapsed >= _k["cooling_off_hours"]
+             else f"ready in {_k['cooling_off_hours'] - _elapsed:.1f} h"))
+    print("  (the clock is NOT restarted; any labels you already filled in "
+          "are preserved)")
+elif not os.path.isfile(os.path.join(RELABEL_DIR, "relabel_sheet.csv")):
     export_sheet(main_items, RELABEL_DIR, n=100, seed=0)
 else:
     print(f"Sheet already exists at {RELABEL_DIR} — not regenerating "
           f"(redrawing after seeing results would invalidate it)")
+
+# A browsable copy with the images embedded. The CSV records paths from the
+# session that BUILT the dataset, which exist nowhere else, so the CSV on its
+# own cannot be labelled.
+from relabel import export_html_sheet
+try:
+    export_html_sheet(RELABEL_DIR, image_roots=[NB1_PATH])
+except Exception as e:
+    print(f"could not build the HTML relabel sheet: {type(e).__name__}: {e}")
 
 # To score it once filled in:
 #     from relabel import score_sheet
