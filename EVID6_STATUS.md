@@ -540,6 +540,27 @@ support; S4 selects its two largest masks; the weak duplicate helper was
 removed; and strict matching is the default headline, with relaxed matching
 retained only as a sensitivity analysis.
 
+### 1.18 Pipeline complete — 16 Aug
+
+All four notebooks have run on real COCO with three models, 9.82 GPU-hours
+consumed (~9.2 h to reproduce). Full results in `NB2_NB3_ANALYSIS.md`.
+
+The headline, and the reason the paper has a claim:
+
+| Model | R1 says | R4 encodes | gap |
+|---|---:|---:|---:|
+| Qwen2.5-VL-3B | 41.0% | 73.0% | +32.0 |
+| InternVL3-2B | 38.6% | 79.2% | +40.7 |
+| SmolVLM2-2.2B | 23.9% | **72.9%** | **+49.0** |
+
+CLIP ViT-B/32 control 44.3%; chance 16.7%. SmolVLM is at chance behaviourally
+yet its activations separate the states as well as Qwen's — representation and
+reportability dissociate, and the gap does not track capability.
+
+One pre-registered criterion **failed**: clean-reference stability (58.8 / 78.7
+/ 59.0% drop against a 35% gate), so every consistency and P1/P2 number is
+provisional and reported as a criterion failure rather than a result.
+
 ## 4. Suggested order
 
 1. Smoke-test InternVL3 loading, and check the letter-token argmax at the same

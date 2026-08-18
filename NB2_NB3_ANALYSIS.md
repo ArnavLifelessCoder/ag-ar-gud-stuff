@@ -21,15 +21,20 @@ All three models ran all seven passes over it.
 |---|---|---:|---|
 | Qwen2.5-VL-3B-Instruct | `66285546d2b821cf421d4f5eb2576359d3770cd3` | 1.19 h | 1838 × 37 × 2048 |
 | InternVL3-2B-**hf** | `cb57a075cb75a2e6d1b668b128d48bb00ae321d2` | 4.85 h | 1838 × 29 × 1536 |
-| SmolVLM2-2.2B-Instruct | `482adb537c021c86670beed01cd58990d01e72e4` | 3.13 h | **none** |
+| SmolVLM2-2.2B-Instruct | `482adb537c021c86670beed01cd58990d01e72e4` | 3.13 h + 0.64 h | 1838 × 25 × 2048 |
 
 Total 9.18 GPU-hours. Row counts are identical across all three models and all
 seven passes (clean 427, treat 1,261, cause 1,838, rung1 900, rung2 179,
 abstain 1,838, repair 1,838), so the three are directly comparable.
 
-SmolVLM has no cached activations because `NB3_infer_BC.py:223` sets
-`CACHE_SMOL_HIDDEN = False` to protect quota. **The probe comparison therefore
-covers two models, not three.** See "the run worth doing" below.
+NB3 ran SmolVLM with `CACHE_SMOL_HIDDEN = False` to protect quota, so its
+activations were captured afterwards by `NB5_smolvlm_acts.py` (0.64 GPU-h, zero
+non-finite rows, R3 reproduced at 19.9% exactly). **All three models therefore
+have a probe.**
+
+Total consumed is **9.82 GPU-h** across every run; the *reproduction* cost is
+~9.2 h, since `smolvlm_cause` genuinely ran twice — once behaviourally and once
+with activations. Report one and footnote the other.
 
 ---
 
@@ -42,9 +47,30 @@ using only its training folds, so the number carries no selection bias.
 |---|---:|---:|---:|---:|---:|
 | Qwen2.5-VL-3B | 41.0% | 39.1% | 41.0% | **73.0% ±2.7** | **+32.0** |
 | InternVL3-2B | 38.6% | 35.8% | 39.1% | **79.2% ±2.2** | **+40.7** |
-| SmolVLM2-2.2B | 23.9% | 21.8% | 19.9% | not measured | — |
+| SmolVLM2-2.2B | 23.9% | 21.8% | 19.9% | **72.9% ±5.5** | **+49.0** |
 | *CLIP ViT-B/32 probe* | | | | *44.3% ±3.3* | |
 | *chance* | | | | *16.7%* | |
+
+### SmolVLM is the result: representation and reportability dissociate
+
+SmolVLM2-2.2B **cannot do this task**. R3 is 19.9% against 16.7% chance, it
+never emits B, E or F, and 84% of its 900 main-condition predictions are a
+single option (D). By every behavioural measure it is at floor.
+
+A linear probe on its layer-17 activations reads the six states at **72.9%** —
+statistically indistinguishable from Qwen's 73.0%, and 28.6 points above the
+CLIP control. Its R1→R4 gap of **+49.0** is the largest of the three.
+
+This is a stronger claim than "models under-report what they represent". A
+model can **encode why it cannot see while being wholly unable to say so**:
+representation and reportability are dissociable, and the gap does not track
+capability. Had SmolVLM's probe also come in near chance, the honest reading
+would have been the opposite — that the representation simply tracks how good
+the model is. It does not.
+
+Two caveats to state rather than smooth over: SmolVLM's fold variance is
+notably wider (**±5.5** against ±2.7 and ±2.2), and its per-fold layer choices
+scatter more (22/23/17/21/21). Quote the spread, not a layer index.
 
 Selection bias was small and is reported rather than absorbed: max-over-layers
 would have read 74.6% for Qwen (+1.6) and 79.6% for InternVL (+0.4). Layers
@@ -76,9 +102,11 @@ InternVL 0, SmolVLM 0.
 ### The probe is not reading object identity
 
 Leave-one-category-out barely costs anything: Qwen **74.2% ±12.0** against
-74.6% within-distribution, InternVL **79.9% ±14.9** against 79.6%. Held-out
-categories are classified as well as seen ones, so the probe is not a category
-detector. Worst groups were `tv` (58.3%) and `chair` (53.8%).
+74.6% within-distribution, InternVL **79.9% ±14.9** against 79.6%, SmolVLM
+**69.5% ±12.0** against 74.7%. Held-out categories are classified nearly as
+well as seen ones, so the probe is not a category detector. SmolVLM's drop
+(+5.3) is the largest of the three but still leaves it 25 points above CLIP.
+Worst groups were `tv` (58.3%) and `chair` (53.8%, 50.0%).
 
 ### The representation does not transfer across models
 
@@ -94,6 +122,7 @@ Report this as a negative result, not an omission.
 |---|---:|---:|---:|---:|---:|---:|
 | Qwen (layer 22) | 29.9% | 44.3% | 52.2% | 56.9% | 66.2% | 72.5% |
 | InternVL (layer 19) | 52.4% | 54.2% | 60.2% | 67.8% | 72.8% | 77.5% |
+| SmolVLM (layer 17) | 39.2% | 40.7% | 50.5% | 60.7% | 64.4% | 70.8% |
 
 InternVL is already above chance-by-a-wide-margin at n=10 and above CLIP's
 44.3% by n=10, which argues the structure is genuinely accessible rather than
