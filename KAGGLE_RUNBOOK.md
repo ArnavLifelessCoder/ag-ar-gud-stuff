@@ -3,6 +3,12 @@
 Copy-paste cells, in order. Every path and import in here was verified against
 the code by cloning the repo and replicating Kaggle's `sys.path` layout.
 
+> **Reading this file:** blocks tagged ```python`` or ```bash`` are cells to
+> paste. Blocks tagged ```text`` are expected *output* — reading them into a
+> cell produces `SyntaxError: invalid syntax`, which is exactly what happened
+> once with the NB6 gate output.
+
+
 ---
 
 ## Before you start
@@ -429,7 +435,7 @@ Strict is the headline; relaxed is the sensitivity arm.
 The last cell bundles everything into one file so you do not have to click
 through the Output tab:
 
-```
+```text
 /kaggle/working/evid6_nb4_output.zip
 ```
 
@@ -531,9 +537,9 @@ the notebook stops and tells you so rather than spending the remaining ~2.2 h.
 Two independent reference designs failing is a finding about the measure — set
 `FORCE = True` if you want that documented for all three models.
 
-Watch for:
+Expected output — **read this, do not paste it into a cell**:
 
-```
+```text
 closed-set compliance: N/M (XX.X%) of sampled answers are exactly one listed colour
 references: N/427 usable, drop rate XX.X%
 GATE PASSED / GATE FAILED
