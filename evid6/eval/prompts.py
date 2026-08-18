@@ -40,6 +40,20 @@ ABSTAIN_PROMPT = (
 
 CLEAN_PROMPT = "Question about the image: {q}\nAnswer in at most four words."
 
+# Closed-set variant of the clean prompt, for the reference-stability rerun.
+# CLEAN_PROMPT's "at most four words" leaves the answer space open, and three
+# samples at temperature 0.7 then agree on well under half of reference groups.
+# Naming the permitted answers collapses paraphrase without changing what is
+# being asked. Compliance is measured (schema.is_closed_answer) rather than
+# assumed: answers outside the set are counted, not silently snapped onto it.
+from schema import CLOSED_COLOURS  # noqa: E402  (schema is already on the path)
+
+CLEAN_CLOSED_PROMPT = (
+    "Question about the image: {q}\n"
+    "Answer with exactly one word from this list, and nothing else:\n"
+    + ", ".join(CLOSED_COLOURS) + "."
+)
+
 REPAIR_PROMPT = (
     "Question about the image: {q}\n\n"
     "What single action would best let you answer this question reliably?\n\n"

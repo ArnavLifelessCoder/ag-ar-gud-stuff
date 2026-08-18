@@ -502,6 +502,53 @@ only SmolVLM's probe is computed.
 
 ---
 
+## NB6 — closed-set reference rerun (GPU, ~2.6 h) — the only route to P1/P2
+
+The free-form clean-reference task failed its own gate on all three models:
+three samples at T=0.7 agreed on 176/427, 91/427 and 175/427 groups — drop
+rates of **58.8 / 78.7 / 59.0%** against a 35% ceiling. No reanalysis fixes
+that; the reference *answers* are unstable. The remedy is a closed answer set.
+
+**Attach:** NB1's output. Accelerator **GPU**. Internet on.
+
+**Cell 1:** the setup cell. **Cell 2:** `!pip install -q num2words`.
+**Cell 3:**
+
+```python
+%run /kaggle/working/evid6/nb/NB6_closed_ref.py
+```
+
+It rewrites every question to "What colour is the {category}?" via
+`make_closed_manifest` (only the question changes — ids, states, conditions,
+reference groups and image paths are untouched, so rows still align with the
+activations), then reruns **only** `clean` and `treat` under `_clean_v2` /
+`_treat_v2` tags. The ladder, abstention and repair passes never touch the
+reference and are not rerun; doing so would cost ~6.5 GPU-h to reproduce
+numbers you already have.
+
+**Qwen runs first as a gate** (~0.33 h). If its drop rate is still above 35%,
+the notebook stops and tells you so rather than spending the remaining ~2.2 h.
+Two independent reference designs failing is a finding about the measure — set
+`FORCE = True` if you want that documented for all three models.
+
+Watch for:
+
+```
+closed-set compliance: N/M (XX.X%) of sampled answers are exactly one listed colour
+references: N/427 usable, drop rate XX.X%
+GATE PASSED / GATE FAILED
+```
+
+Compliance is measured, not assumed — near-misses like "dark red" are counted
+as non-compliant rather than snapped onto the set.
+
+Then **Save & Run All**, and rerun NB4 with this output attached. NB4 prefers
+the `_v2` tags automatically, prints which reference task it used per model,
+and records it in `summary.json` under `reference_task`. The ladder and probe
+numbers are unaffected.
+
+---
+
 ## Order of operations
 
 Interactive for the pre-flights; **Save & Run All** for anything that produces
@@ -518,9 +565,9 @@ an output you will attach later.
 8. Tier B hand-sorting (200 items) while the clock runs.
 9. **NB5, ~0.7 GPU-h: SmolVLM cause pass with activations** (section above),
    then re-run NB4 with the probe cache attached (~10 min) for a third R4.
-10. Optional, 2.55 GPU-h: rerun `clean`+`treat` under **new tags** with a
-    constrained answer task, to get the reference drop rate under 35%. Runners
-    resume by tag, so reusing a tag silently processes zero items.
+10. **NB6, ~2.6 GPU-h: the closed-set reference rerun** (section above), then
+    NB4 again with the probe cache attached. The only route to a defensible
+    P1/P2.
 11. Steering, if E4 landed by 20 Aug.
 12. Score the relabel sheet. Write.
 

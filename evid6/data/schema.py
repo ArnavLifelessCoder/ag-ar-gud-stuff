@@ -76,6 +76,76 @@ class Item:
         return cls(**json.loads(line))
 
 
+# ── Closed-set reference task ───────────────────────────────────────────────
+
+# The free-form clean-reference task failed its own stability gate on all three
+# models: three samples at temperature 0.7 agreed on only 41.2% / 21.3% / 41.0%
+# of groups, against a 35% maximum drop rate. Open-ended answers to "What is the
+# wine glass made of?" are simply not reproducible.
+#
+# The plan's remedy is a closed answer set. Colour is the right choice: it is
+# answerable for essentially any object, it is what S4's CIEDE2000 gate already
+# certifies as distinguishing the ambiguous candidates, and it is what S3's
+# contrast/luminance reduction actually destroys — so the question probes the
+# intervention rather than sitting beside it.
+CLOSED_COLOURS = ["black", "blue", "brown", "green", "grey", "orange",
+                  "pink", "purple", "red", "white", "yellow"]
+
+
+def closed_colour_question(category: str) -> str:
+    """The single question used for the closed-set consistency measurement."""
+    return f"What colour is the {category}?"
+
+
+def make_closed_manifest(items_path: str, out_path: str = None) -> str:
+    """Rewrite a manifest so every item asks the closed-set colour question.
+
+    Consistency asks whether the model's answer to a *fixed* question survives
+    an intervention. The question therefore need not be the one drawn at build
+    time — and using one question for every item both maximises usable n and
+    removes question type as a confound between states.
+
+    Only ``question`` changes. Item ids, states, conditions, reference groups
+    and image paths are untouched, so the rows still align with every other
+    pass and with the activations.
+
+    Returns the path written.
+    """
+    out_path = out_path or "/kaggle/working/items_closed.jsonl"
+    rows, changed = [], 0
+    with open(items_path, encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            it = json.loads(line)
+            q = closed_colour_question(it["category"])
+            if it.get("question") != q:
+                changed += 1
+            it["question"] = q
+            rows.append(it)
+
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        for it in rows:
+            f.write(json.dumps(it) + "\n")
+    print(f"make_closed_manifest: {len(rows)} items, {changed} questions "
+          f"rewritten -> {out_path}")
+    return out_path
+
+
+def is_closed_answer(ans: str) -> bool:
+    """Did the model comply with the closed answer set?
+
+    Reported as a compliance rate. A constrained prompt that the model ignores
+    is not a fix, and the honest way to find out is to measure it rather than
+    to snap near-misses onto the set afterwards.
+    """
+    if not ans:
+        return False
+    a = "".join(c for c in ans.strip().lower() if c.isalpha() or c.isspace())
+    return a.strip() in CLOSED_COLOURS
+
+
 # ── Locating the manifest across notebooks ──────────────────────────────────
 
 def find_items(search_roots=("/kaggle/input", "/kaggle/working")) -> str:

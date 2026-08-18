@@ -585,6 +585,41 @@ tri = triptychs(qa_items, QA, n=4, seed=0)
 ok(f"{len(made)} contact sheet(s) + index.html with the QA checklist")
 ok(f"triptychs rendered: {os.path.basename(tri) if tri else 'skipped'}")
 
+print("\n[25] closed-set reference task")
+from schema import (CLOSED_COLOURS, closed_colour_question, is_closed_answer,
+                    make_closed_manifest)
+from prompts import CLEAN_CLOSED_PROMPT
+
+# The prompt must actually name the permitted answers, or it constrains nothing.
+_p = CLEAN_CLOSED_PROMPT.format(q=closed_colour_question("cat"))
+assert "What colour is the cat?" in _p
+for _c in CLOSED_COLOURS:
+    assert _c in _p, f"{_c} missing from the closed-set prompt"
+
+# Compliance must be measured, not assumed: near-misses are NOT snapped on.
+assert is_closed_answer("black") and is_closed_answer("Black.")
+assert is_closed_answer("  RED ")
+assert not is_closed_answer("dark red"), "must not accept unlisted colours"
+assert not is_closed_answer("the cat is black"), "must not accept a sentence"
+assert not is_closed_answer("")
+
+# The rewrite may change ONLY the question. Anything else would break alignment
+# with the activations and with every other pass.
+_cl = os.path.join(tmp, "items_closed.jsonl")
+make_closed_manifest(ipath, _cl)
+_before = [json.loads(l) for l in open(ipath, encoding="utf-8") if l.strip()]
+_after = [json.loads(l) for l in open(_cl, encoding="utf-8") if l.strip()]
+assert len(_before) == len(_after)
+for _a, _b in zip(_before, _after):
+    assert _a["item_id"] == _b["item_id"]
+    assert _a["state"] == _b["state"] and _a["condition"] == _b["condition"]
+    assert _a.get("ref_group") == _b.get("ref_group")
+    assert _a["image_path"] == _b["image_path"]
+    assert _b["question"] == closed_colour_question(_b["category"])
+ok(f"closed prompt lists all {len(CLOSED_COLOURS)} colours; compliance check "
+   f"rejects 'dark red' and sentences")
+ok(f"make_closed_manifest rewrites only the question on {len(_after)} rows")
+
 # ── Supplementary artifact ───────────────────────────────────────────────
 import platform, datetime
 report_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),

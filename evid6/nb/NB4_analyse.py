@@ -125,9 +125,15 @@ MODELS = {
 }
 
 results = {}
+# `clean` and `treat` may exist in two forms: the original free-form reference
+# task, and the closed-set rerun written by NB6 under `_v2` tags. Prefer `_v2`
+# when present -- the free-form reference failed its stability gate on all three
+# models, so if a closed-set version exists it is the one to score. Which was
+# used is printed and recorded in summary.json; it must not be silent, because
+# it changes what every consistency number means.
+REFERENCE_TASK = {}
 for tag_prefix in MODELS:
-    for suffix in ["cause", "abstain", "repair", "clean", "treat",
-                   "rung1", "rung2"]:
+    for suffix in ["cause", "abstain", "repair", "rung1", "rung2"]:
         tag = f"{tag_prefix}_{suffix}"
         r = load_results(tag, search)
         if r:
@@ -135,6 +141,30 @@ for tag_prefix in MODELS:
             print(f"  {tag}: {len(r)} items")
         else:
             print(f"  {tag}: NOT FOUND")
+
+    used = None
+    for suffix in ["clean", "treat"]:
+        tag = f"{tag_prefix}_{suffix}"
+        r_v2 = load_results(f"{tag}_v2", search)
+        if r_v2:
+            results[tag] = r_v2
+            used = "closed-set (v2)"
+            print(f"  {tag}: {len(r_v2)} items  <- from {tag}_v2, CLOSED SET")
+        else:
+            r = load_results(tag, search)
+            if r:
+                results[tag] = r
+                used = used or "free-form"
+                print(f"  {tag}: {len(r)} items  (free-form reference)")
+            else:
+                print(f"  {tag}: NOT FOUND")
+    REFERENCE_TASK[tag_prefix] = used or "none"
+
+print(f"\nreference task per model: {REFERENCE_TASK}")
+if any(v == "closed-set (v2)" for v in REFERENCE_TASK.values()):
+    print("  NOTE: consistency and the P1/P2 verdict below are computed on the")
+    print("  closed-set reference. The ladder, abstention and repair numbers")
+    print("  are unaffected -- they never touch the reference.")
 
 # %% [markdown]
 # ## 1. Evaluation Ladder — Rung 3 (logit argmax)
@@ -936,6 +966,7 @@ summary = _clean({
     "curves": {k: [(int(n), float(m), float(sd)) for n, m, sd in v]
                for k, v in curves.items()},
     "consistency": consistency_summary,
+    "reference_task": REFERENCE_TASK,
     "abstention": abstain_summary,
     "statistics": stat_results,
     "transfer": transfer_results,
