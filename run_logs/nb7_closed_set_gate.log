@@ -1,0 +1,87 @@
+7.6s 1 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+7.6s 2 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+7.6s 3 0.00s - to python to disable frozen modules.
+7.6s 4 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+8.2s 5 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+8.2s 6 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+8.2s 7 0.00s - to python to disable frozen modules.
+8.2s 8 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+11.7s 9 805a132 Runbook: tag expected-output blocks so they cannot be pasted as cells
+15.1s 10 Preparing metadata (setup.py) ... [?25l[?25hdone
+15.2s 11 [?25l   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/163.5 kB[0m [31m?[0m eta [36m-:--:--[0m[2K   [91m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m[91m╸[0m[90m━━[0m [32m153.6/163.5 kB[0m [31m6.1 MB/s[0m eta [36m0:00:01[0m[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m163.5/163.5 kB[0m [31m4.2 MB/s[0m eta [36m0:00:00[0m
+16.5s 12 [?25h  Building wheel for docopt (setup.py) ... [?25l[?25hdone
+24.0s 13 PyTorch: 2.10.0+cu128 | CUDA: True
+24.0s 14 GPU: Tesla T4
+46.5s 15 transformers   5.0.0
+46.5s 16 torch          2.10.0+cu128
+46.5s 17 auto_class     AutoModelForImageTextToText
+46.5s 18 cuda           True
+46.5s 19 gpu            Tesla T4
+46.5s 20 
+46.5s 21 closed answer set: black, blue, brown, green, grey, orange, pink, purple, red, white, yellow
+56.1s 22 rebase_items: 1838 items — 0 already valid, 1838 remapped, 0 unresolved
+56.1s 23 make_closed_manifest: 1838 items, 857 questions rewritten -> /kaggle/working/items_closed.jsonl
+56.1s 24 Closed-set manifest: /kaggle/working/items_closed.jsonl
+56.1s 25 Example question: 'What colour is the wine glass?'
+56.1s 26 
+56.1s 27 Prompt sent to the model:
+56.1s 28 
+56.1s 29 Question about the image: What colour is the wine glass?
+56.1s 30 Answer with exactly one word from this list, and nothing else:
+56.1s 31 black, blue, brown, green, grey, orange, pink, purple, red, white, yellow.
+56.2s 32 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+56.2s 33 
+56.2s 34 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+56.9s 35 The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`.
+56.9s 36 
+56.9s 37 The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`.
+104.5s 38 0 done, 427 to go
+707.2s 39 The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+707.2s 40 
+707.2s 41 The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+707.4s 42 Finished qwen_clean_v2: 427 new items generated
+707.4s 43 [budget] qwen_clean_v2: 10.0 min on Tesla T4
+707.4s 44 0 done, 1261 to go
+1293.7s 45 Finished qwen_treat_v2: 1261 new items generated
+1293.7s 46 [budget] qwen_treat_v2: 9.8 min on Tesla T4
+1293.8s 47 
+1293.8s 48 closed-set compliance: 1270/1281 (99.1%) of sampled answers are exactly one listed colour
+1293.8s 49 examples outside the set: ['orange, white', 'red, orange, yellow', 'red white', 'Black, white', 'gray']
+1293.8s 50 references: 252/427 usable, drop rate 41.0% (0 refusals)
+1293.8s 51 
+1293.8s 52 ======================================================================
+1293.8s 53 GATE FAILED: drop rate 41.0% still exceeds 35%.
+1293.8s 54 The closed answer set did NOT fix reference stability.
+1293.8s 55 Do not spend the remaining ~2.2 GPU-hours on InternVL and SmolVLM.
+1293.8s 56 Report the free-form AND closed-set drop rates together: two
+1293.8s 57 independent reference designs failing is a finding about the
+1293.8s 58 measure, not a gap in the paper.
+1293.8s 59 ======================================================================
+1293.8s 60 Skipped: the Qwen gate failed.
+1293.8s 61 ======================================================================
+1293.8s 62 REFERENCE STABILITY: free-form vs closed set
+1293.8s 63 ======================================================================
+1293.8s 64 model         free-form drop   closed-set drop     verdict
+1293.8s 65 qwen                  58.8%            41.0%        FAIL
+1293.8s 66 internvl              78.7%           not run           —
+1293.8s 67 smolvlm               59.0%           not run           —
+1293.8s 68 
+1293.8s 69 Gate: drop rate must be <= 35% (plan, 13 Aug).
+1293.8s 70 
+1293.8s 71 ====================================================
+1293.8s 72 COMPUTE BUDGET
+1293.8s 73 ====================================================
+1293.8s 74 GPU hours: 0.33  (1.1% of a 30 h week)
+1293.8s 75 CPU hours: 0.00
+1293.8s 76 qwen_clean_v2                 0.168 h
+1293.8s 77 qwen_treat_v2                 0.163 h
+1293.8s 78 
+1293.8s 79 The full pipeline consumed 0.3 GPU-hours on free-tier T4s.
+1299.5s 80 /usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\|'
+1299.5s 81 cells[i][c] = re.sub('\\\\\|', '|', cell)
+1299.6s 82 /usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\_'
+1299.6s 83 text = re.sub(r'_', '\_', text) # Escape underscores in display text
+1300.3s 84 [NbConvertApp] Converting notebook __notebook__.ipynb to notebook
+1300.6s 85 [NbConvertApp] Writing 148372 bytes to __notebook__.ipynb
+1303.1s 86 [NbConvertApp] Converting notebook __notebook__.ipynb to html
+1303.9s 87 [NbConvertApp] Writing 396592 bytes to __results__.html

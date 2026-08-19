@@ -132,7 +132,7 @@ def agree(a: str, b: str, relaxed: bool = False) -> bool:
 
 # ── Reference table ─────────────────────────────────────────────────────────
 
-def build_references(clean_results, require_stable: bool = True):
+def build_references(clean_results, require_stable=True):
     """Map ref_group -> reference answer, from the clean_ref generations.
 
     Parameters
@@ -140,15 +140,37 @@ def build_references(clean_results, require_stable: bool = True):
     clean_results : list of dict
         Rows written by ``run_generation`` on the clean prompt.  Each needs
         ``ref_group``, ``answers`` (list) and ``stable`` (bool).
-    require_stable : bool
-        Drop groups whose three samples disagreed.  The plan's kill criterion
-        (13 Aug) fires if this drops more than 35% of groups.
+    require_stable : {True, "unanimous", "majority", False}
+        How much sample agreement a group needs to contribute a reference.
+
+        ``True`` / ``"unanimous"`` — all three samples must match. **This is the
+        pre-registered rule** and the one the 13 Aug kill criterion (>35% drop)
+        was written against.
+
+        ``"majority"`` — the modal answer wins if at least two of three samples
+        agree; the reference becomes that modal answer rather than
+        ``answers[0]``. **Post-hoc.** It was added after unanimity failed its
+        gate on the closed-set rerun (41.0% drop for Qwen), and anything
+        reported under it must say so. On that data it yields 7.0% drop, but it
+        also lowers the S0 ceiling from 96.6% to 88.0% — the reference is
+        genuinely noisier, which is the price of the yield. Worse, the P1
+        verdict *flips* between the two rules (gap +5.0% vs +5.6% against a
+        5-point tolerance), so P1 is not robust to this choice and should not
+        be claimed under either.
+
+        ``False`` — keep every group.
 
     Returns
     -------
     refs : dict, ref_group -> reference answer string
-    stats : dict with n_total, n_stable, drop_rate, n_refusal
+    stats : dict with n_groups, n_stable, n_usable, drop_rate, n_refusal, rule
     """
+    if require_stable is True:
+        require_stable = "unanimous"
+    if require_stable not in ("unanimous", "majority", False):
+        raise ValueError(f"require_stable must be 'unanimous', 'majority' or "
+                         f"False, got {require_stable!r}")
+
     refs, n_total, n_stable, n_refusal = {}, 0, 0, 0
     for r in clean_results:
         if r.get("condition") != "clean_ref":
@@ -163,14 +185,29 @@ def build_references(clean_results, require_stable: bool = True):
         if is_refusal(answers[0]):
             n_refusal += 1
             continue
+
+        norm = [normalise(a) for a in answers]
+        counts = {}
+        for a in norm:
+            counts[a] = counts.get(a, 0) + 1
+        top, top_n = max(counts.items(), key=lambda kv: (kv[1], kv[0]))
+
         stable = r.get("stable")
         if stable is None:
-            stable = len({normalise(a) for a in answers}) == 1
+            stable = len(set(norm)) == 1
         if stable:
             n_stable += 1
-        elif require_stable:
-            continue
-        refs[grp] = answers[0]
+
+        if require_stable == "unanimous":
+            if not stable:
+                continue
+            refs[grp] = answers[0]
+        elif require_stable == "majority":
+            if top_n < 2:
+                continue          # all three samples differ: genuinely undefined
+            refs[grp] = top       # the MODAL answer, not answers[0]
+        else:
+            refs[grp] = answers[0]
 
     stats = {
         "n_groups": n_total,
@@ -178,6 +215,10 @@ def build_references(clean_results, require_stable: bool = True):
         "n_refusal": n_refusal,
         "n_usable": len(refs),
         "drop_rate": 1 - (len(refs) / n_total) if n_total else 0.0,
+        # Which rule produced these references. Recorded so a downstream table
+        # cannot silently mix the pre-registered rule with the post-hoc one.
+        "rule": require_stable if require_stable else "none",
+        "pre_registered": require_stable == "unanimous",
     }
     return refs, stats
 
