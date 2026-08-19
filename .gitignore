@@ -20,9 +20,14 @@ vlm nb2 results/
 vlm nb5 output/
 evid6_nb4_output/
 evid6_nb4_output.zip
+nb5 v2 result/
+nb5 v2 result.zip
 
 # Never commit a relabel key. The 100-item blind self-relabel is only valid if
 # the sheet is filled in WITHOUT having seen the answers; a key in the repo is
-# one click away and voids the protocol.
+# one click away and voids the protocol. Note that the downloaded Kaggle
+# output zips carry `relabel/relabel_key.json` INSIDE them, so the archives are
+# excluded above by name too -- the rules below only catch it once extracted.
 relabel/
 relabel_key.json
+nb7 results/

@@ -31,7 +31,7 @@ Deadlines: freeze 22 Aug, submit 29 Aug.
 ## 2. Status: the pipeline has run end to end
 
 NB1 → NB2/NB3 → NB4 all complete on real COCO with three models.
-**HEAD = `3fb9228`, nothing unpushed, working tree clean.**
+**HEAD = `8e91d45`, nothing unpushed, working tree clean.**
 
 ### The headline result
 
@@ -63,11 +63,12 @@ Qwen's 73.0%. The gap does not track capability.
   `smolvlm R4 = None` and budget 9.18 h, and it has no `probe_cache.json`. Do
   not read SmolVLM numbers out of it — use the log, or the nb5 v2 output.
 
-**→ Worth doing when convenient: download the Kaggle `vlm nb5` version 2
-output** (`kaggle kernels output aaryanadutta/vlm-nb5 -p ./nb5-v2`). It carries
-the machine-readable `summary.json` with all three models and the three-model
-`probe_cache.json`. The log covers the numbers; the JSON is what you would
-regenerate a table from.
+**→ Done 18 Aug 21:14 — the nb5 v2 output is now local at `nb5 v2 result/`.**
+Its `figures/summary.json` carries all three models and `figures/probe_cache.json`
+has all three keys, so SmolVLM is no longer log-only. Cross-checked against the
+log the same evening and it agrees exactly: `smolvlm` nested R4
+`0.72897 ±0.05456`, sweep max `0.74747 @ layer 17`, CLIP `0.44270`, budget
+`9.819 h`. Quote either source.
 
 ### Supporting results (all verified)
 
@@ -84,22 +85,54 @@ regenerate a table from.
 - **SmolVLM's 86.7% on S3 is an artifact** — it answers D on 753/900 items; a
   constant-D predictor scores 100% on S3 and 16.7% overall.
 
-### The one pre-registered failure
+### The pre-registered failure, now diagnosed (NB7, 19 Aug)
 
-**Clean-reference stability.** Three samples at T=0.7 agreed on 176/427, 91/427,
-175/427 groups — drop rates **58.8 / 78.7 / 59.0%** against a 35% gate. Every
-consistency and P1/P2 number is therefore provisional and reported as a
-criterion failure. The threats table carries one **FAILED** row. Not fixable by
-reanalysis — the reference answers themselves are unstable.
+**Clean-reference stability fails, and a second reference design shows why.**
+
+| Reference design | Qwen drop | InternVL | SmolVLM | Gate (≤35%) |
+|---|---:|---:|---:|---|
+| Free-form, 3 samples @ T=0.7 | **58.8%** | 78.7% | 59.0% | FAIL |
+| **Closed-set colour** (NB7) | **41.0%** | not run | not run | **FAIL** |
+
+The closed set **worked as an instruction** — compliance **99.1%**
+(1270/1281 sampled answers are exactly one listed colour) — and removed
+**17.8 points** of variance. What remains is genuine colour disagreement:
+dropped groups split on *brown/white*, *black/brown*, *blue/brown*, and
+**zero** groups are dropped over a `gray`/`grey` spelling split (checked
+explicitly, so this is not a normalisation artifact). Many look like genuinely
+multi-coloured objects.
+
+So the instability was never paraphrase. It is sampling uncertainty about the
+answer itself. That diagnosis is a **methods result**, not a gap.
+
+**P1 is not defensible under any rule.** `build_references` now also offers
+`require_stable="majority"` (modal answer wins with 2 of 3), which would give
+7.0% drop and pass the gate — but it is **post-hoc**, flagged as such in the
+docstring and in `stats["pre_registered"]`, and it flips the verdict:
+
+| Rule | S2 gap vs floor | P1 verdict |
+|---|---:|---|
+| unanimous (pre-registered) | **+5.0%** | "supported" |
+| majority (post-hoc) | **+5.6%** | "challenged" |
+
+A 0.6-point difference straddling the 5-point tolerance decides it. Majority
+also lowers the S0 ceiling 96.6% → 88.0%, the honest cost of the yield.
+**Do not report a P1 verdict.**
+
+**P2 is "challenged" under both rules and under both reference designs.** That
+is the one consistency conclusion that survives, and it now has independent
+support.
 
 McNemar also finds main consistency indistinguishable from the prior floor for
 all three (p = 0.36 / 0.18 / 0.86).
+
+Provenance: `run_logs/nb7_closed_set_gate.log`; raw rows in `nb7 results/`.
 
 ---
 
 ## 3. Compute
 
-**9.82 GPU-hours consumed**; **~9.2 h to reproduce** — `smolvlm_cause` ran twice
+**10.15 GPU-hours consumed** (9.82 + NB7's 0.33); **~9.2 h to reproduce** — `smolvlm_cause` ran twice
 (0.616 h behavioural in NB3, 0.635 h with activations in NB5). Pick one for the
 paper and footnote the other. NB4 merges every attached budget log and
 deduplicates on `(name, seconds)`, which is why both survive.
@@ -140,35 +173,34 @@ deduplicates on `(name, seconds)`, which is why both survive.
 
 ## 5. What is pending
 
-### 5a. NB6 closed-set reference rerun — GPU, ~2.6 h — NOT YET RUN
+### 5a. NB6 closed-set rerun — RUN 19 Aug, gate FAILED, stopped early
 
-The only route to a defensible P1/P2. **Make a new notebook** (`nb7 vlm`);
-do not reuse `nb6 vlm`.
+Ran in Kaggle notebook `nb7 vlm` (0.33 GPU-h of the 2.6 budgeted). Qwen's gate
+failed at 41.0%, so InternVL and SmolVLM were **not** run — by design.
 
-Attach **`vlm neurips nb1`** only. **GPU.** Internet on. Three cells: the setup
-cell → `!pip install -q num2words` → `%run /kaggle/working/evid6/nb/NB6_closed_ref.py`
+**Do not spend the remaining 2.2 GPU-h.** It would buy P2-challenged on two
+more models under a reference that still fails its pre-registered gate, and P1
+stays unusable either way. The diagnosis (§2) is the deliverable.
 
-It rewrites every question to "What colour is the {category}?"
-(`make_closed_manifest` — only the question changes; ids, states, conditions,
-ref groups and image paths are untouched, verified on the real 1,838-row
-manifest: 857 rewritten, rest identical), then reruns **only** `clean` and
-`treat` under `_clean_v2` / `_treat_v2`. Ladder/abstain/repair never touch the
-reference and are not rerun.
+If you ever do want it: `FORCE = True` in `NB6_closed_ref.py` runs the other
+two regardless, to document that the closed set fails for all three.
 
-**Qwen runs first as a gate** (~0.33 h). If its drop rate is still >35% the
-notebook stops rather than spending the remaining 2.2 h; `FORCE = True`
-overrides. Two independent reference designs failing is a finding about the
-measure, not a hole.
+### 5b. NB4 rerun — probably NOT needed, and one hazard if you do
 
-Compliance is **measured**, not assumed — `is_closed_answer` rejects "dark red"
-and "the cat is black" rather than snapping them onto the set.
+The nb5 v2 output already has all three models, CLIP, and every figure. There
+is nothing new to compute unless you want the closed-set consistency numbers in
+`summary.json`.
 
-### 5b. NB4 rerun after NB6 — CPU, ~15 min
+⚠️ **If you do rerun it, do not attach the `nb7 vlm` output.** NB4 prefers
+`_v2` tags per model, and only **Qwen** has them — so you would get Qwen scored
+on the closed-set reference and InternVL/SmolVLM on the free-form one, in the
+same table. NB4 prints `reference task per model` and records it in
+`summary.json` as `reference_task`, so it is visible, but a mixed-reference
+comparison across models is not interpretable. Either attach nb7 and read only
+Qwen's consistency block, or leave it off.
 
-Attach: nb1, nb2, nb3, `nb6 vlm` (SmolVLM acts), and a notebook holding
-`probe_cache.json` with all three models (nb5 v2). All three probes load from
-cache. NB4 prefers `_v2` tags automatically, prints which reference task it
-used per model, and records it in `summary.json` as `reference_task`.
+If you rerun for any other reason: attach nb1, nb2, nb3, `nb6 vlm` (SmolVLM
+acts) and nb5 v2 (probe cache). All three probes load from cache, ~15 min.
 
 ### 5c. Blind self-relabel — human, 100 items
 
@@ -186,11 +218,16 @@ used per model, and records it in `summary.json` as `reference_task`.
   `/kaggle/working`, which is always empty in batch). Fixed in `3fb9228`: it
   now carries an existing sheet+key forward from the inputs.
 
-### 5d. Housekeeping — cheap, not urgent
+### 5d. Housekeeping — DONE 18 Aug
 
-**Download the nb5 v2 output** for the machine-readable `summary.json` and the
-three-model `probe_cache.json`. The numbers themselves are already preserved in
-`run_logs/nb5_run2_smolvlm_probe.log`.
+The nb5 v2 output is downloaded and extracted to `nb5 v2 result/`; see the
+§2 provenance note. Two things to know about that folder:
+
+- It ships `relabel/relabel_key.json`. `.gitignore`'s `relabel/` rule catches
+  it, and the folder itself is now ignored by name as well — but **do not
+  open that file**, the 48 h blind relabel is still pending (§5c).
+- It also duplicates the whole `evid6/` source tree, which is why the folder
+  is ignored wholesale: editing the wrong copy is the hazard.
 
 ### 5e. Still open, lower priority
 
@@ -218,8 +255,12 @@ three-model `probe_cache.json`. The numbers themselves are already preserved in
 | `results-nb3/` | NB3 export (InternVL + SmolVLM) — gitignored |
 | `vlm nb5 output/` | NB4 run **1** — stale, see §2 provenance — gitignored |
 | `evid6_nb4_output/` | holds the qwen+internvl `probe_cache.json` — gitignored |
+| `nb5 v2 result/` | NB4 run **2** — all three models, the good `summary.json` — gitignored |
 | `qa_real_coco_pilot/` | real-COCO QA sheets, reviewed and passed — committed |
 | `run_logs/nb5_run2_smolvlm_probe.log` | **provenance for every SmolVLM number** — committed |
+| `run_logs/nb7_closed_set_gate.log` | **provenance for the closed-set gate failure** — committed |
+| `nb7 results/` | NB7 raw `_clean_v2` / `_treat_v2` rows — gitignored |
+| `nb5 v2 result/` | nb5 v2 output: three-model `summary.json` + cache — gitignored |
 
 **Never `git add -A` in this repo.** It sweeps the result folders in; it once
 committed `relabel_key.json` to a public repo. Stage explicit paths.
@@ -252,9 +293,16 @@ reportability dissociate. Few-shot does not close the gap. Not explained by a
 generic vision encoder (CLIP 44.3%), not object-identity detection (LOCO ≈ free),
 and not shared between models (transfer at chance).
 
-**Do not claim:** a P1/P2 verdict, calibrated abstention, or a repair policy.
-Report the reference-stability failure as a finding about free-form reference
-tasks — an honest negative, not a gap.
+**Also claim, as a methods contribution:** two independent reference designs
+fail the same stability gate (58.8% → 41.0% at 99.1% instruction compliance),
+which localises the cause to sampling uncertainty about the answer rather than
+to paraphrase; and the P1 verdict is sensitive to the reference-aggregation
+rule (+5.0% vs +5.6% against a 5-point tolerance), which is worth a sentence in
+Limitations.
+
+**Do not claim:** a **P1** verdict under any rule — it flips. Nor calibrated
+abstention, nor a repair policy. **P2 = challenged** is reportable: it holds
+under both aggregation rules and both reference designs.
 
 **Also state plainly:** S4 consistency (98.2 / 96.4 / 91.7%) is high because
 `gen_S4` leaves the image untouched, so it measures decoding noise like S0 — a
