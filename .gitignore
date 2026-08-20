@@ -22,6 +22,9 @@ evid6_nb4_output/
 evid6_nb4_output.zip
 nb5 v2 result/
 nb5 v2 result.zip
+nb 9 results/
+relabel_share/
+relabel_share.zip
 
 # Never commit a relabel key. The 100-item blind self-relabel is only valid if
 # the sheet is filled in WITHOUT having seen the answers; a key in the repo is
