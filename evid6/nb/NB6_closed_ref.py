@@ -1,23 +1,23 @@
 # %% [markdown]
 # # NB6: closed-set clean + treatment passes
-# **Accelerator: GPU (T4 or P100)** — about 2.6 GPU-hours for all three models.
+# **Accelerator: GPU (T4 or P100)** - about 2.6 GPU-hours for all three models.
 #
 # ## Why
 # The clean-reference task failed its own pre-registered stability gate on every
 # model. Three samples at temperature 0.7 agreed on 176/427, 91/427 and 175/427
-# reference groups — drop rates of 58.8%, 78.7% and 59.0% against a 35% ceiling.
+# reference groups - drop rates of 58.8%, 78.7% and 59.0% against a 35% ceiling.
 # Open-ended answers to "What is the wine glass made of?" are not reproducible,
 # so every consistency and P1/P2 number computed from them is provisional.
 #
 # This is not fixable by reanalysis: the reference *answers* are unstable, and
 # rescoring the survivors differently does not change that. The only remedy is
-# to change the reference task, which the plan anticipated — a closed answer
+# to change the reference task, which the plan anticipated - a closed answer
 # set, specifically colour.
 #
 # ## What changes, and what deliberately does not
 # Only the clean and treatment passes rerun, under **new tags** (`_clean_v2`,
 # `_treat_v2`). The ladder, abstention and repair passes never touch the
-# reference and are untouched here — rerunning them would burn ~6.5 GPU-hours
+# reference and are untouched here - rerunning them would burn ~6.5 GPU-hours
 # to reproduce numbers that already exist.
 #
 # The question is replaced for *every* item with "What colour is the
@@ -129,7 +129,7 @@ def closed_passes(model_id, tag):
 
 
 # %% [markdown]
-# ## Model A — Qwen2.5-VL-3B (the gate, ~0.33 h)
+# ## Model A - Qwen2.5-VL-3B (the gate, ~0.33 h)
 
 # %%
 QWEN_STATS = closed_passes("Qwen/Qwen2.5-VL-3B-Instruct", "qwen")
@@ -153,7 +153,7 @@ else:
     print("=" * 70)
 
 # %% [markdown]
-# ## Models B and C — only if the gate passed
+# ## Models B and C - only if the gate passed
 # Set `FORCE = True` to run them anyway, e.g. to document that the closed set
 # fails for every model rather than only for Qwen.
 
@@ -179,7 +179,7 @@ FREE = {"qwen": 0.588, "internvl": 0.787, "smolvlm": 0.590}
 for tag, st in [("qwen", QWEN_STATS), ("internvl", INTERNVL_STATS),
                 ("smolvlm", SMOLVLM_STATS)]:
     if st is None:
-        print(f"{tag:12}{FREE[tag]:>15.1%}{'not run':>18}{'—':>12}")
+        print(f"{tag:12}{FREE[tag]:>15.1%}{'not run':>18}{'-':>12}")
         continue
     verdict = "PASS" if st["drop_rate"] <= GATE else "FAIL"
     print(f"{tag:12}{FREE[tag]:>15.1%}{st['drop_rate']:>17.1%}{verdict:>12}")

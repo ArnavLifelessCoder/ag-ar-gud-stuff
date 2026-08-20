@@ -59,7 +59,7 @@ REFUSAL_MARKERS = (
 
 # Answers that are refusals only when they are the WHOLE answer.  "nothing" as
 # a complete reply is a non-answer; "nothing on the sign" is a real one.
-# Matched against the answer with punctuation stripped but articles KEPT —
+# Matched against the answer with punctuation stripped but articles KEPT -
 # ``normalise`` drops "a", which turns "N/A" into a bare "n".
 REFUSAL_EXACT = frozenset({
     "n a", "na", "none", "no answer", "cannot", "can not", "do not know",
@@ -143,22 +143,22 @@ def build_references(clean_results, require_stable=True):
     require_stable : {True, "unanimous", "majority", False}
         How much sample agreement a group needs to contribute a reference.
 
-        ``True`` / ``"unanimous"`` — all three samples must match. **This is the
+        ``True`` / ``"unanimous"`` - all three samples must match. **This is the
         pre-registered rule** and the one the 13 Aug kill criterion (>35% drop)
         was written against.
 
-        ``"majority"`` — the modal answer wins if at least two of three samples
+        ``"majority"`` - the modal answer wins if at least two of three samples
         agree; the reference becomes that modal answer rather than
         ``answers[0]``. **Post-hoc.** It was added after unanimity failed its
         gate on the closed-set rerun (41.0% drop for Qwen), and anything
         reported under it must say so. On that data it yields 7.0% drop, but it
-        also lowers the S0 ceiling from 96.6% to 88.0% — the reference is
+        also lowers the S0 ceiling from 96.6% to 88.0% - the reference is
         genuinely noisier, which is the price of the yield. Worse, the P1
         verdict *flips* between the two rules (gap +5.0% vs +5.6% against a
         5-point tolerance), so P1 is not robust to this choice and should not
         be claimed under either.
 
-        ``False`` — keep every group.
+        ``False`` - keep every group.
 
     Returns
     -------
@@ -237,7 +237,7 @@ def score_consistency(treat_results, refs, relaxed: bool = False):
 
     Returns
     -------
-    list of dict — the scored subset (rows without a usable reference are
+    list of dict - the scored subset (rows without a usable reference are
     dropped, and the count is reported by ``summarise``).
     """
     out = []
@@ -391,9 +391,9 @@ def p1_p2_verdict(scored, flat_tol: float = 0.05):
             and v["P2"]["stays_above_floor"] is not None:
         s3_min = min(c[1] for c in v["P2"]["curve"])
         v["collapse"] = abs(v["P1"]["s2_main"] - s3_min) <= flat_tol
-        v["note"] = ("S2 and S3 curves coincide — report five states, per the "
+        v["note"] = ("S2 and S3 curves coincide - report five states, per the "
                      "pre-registered plan." if v["collapse"] else
-                     "S2 and S3 separate — the six-state taxonomy earns its "
+                     "S2 and S3 separate - the six-state taxonomy earns its "
                      "extra state.")
     return v
 
@@ -404,7 +404,7 @@ def summarise_both(treat_results, refs, ref_stats):
     Relaxed matching counts "red" as agreeing with "red and white"; strict
     demands exact equality after normalisation.  The choice moves the
     headline numbers, so the paper should report both whenever they differ
-    meaningfully.  ``delta`` is the size of that dependence — if it is small,
+    meaningfully.  ``delta`` is the size of that dependence - if it is small,
     say so and move on; if it is large, the relaxed number needs defending.
 
     Returns
@@ -438,11 +438,11 @@ def summarise_both(treat_results, refs, ref_stats):
     out["primary"] = "strict"
     # Strict is the headline (see ``agree``); relaxed is the sensitivity arm.
     # This note used to say "justify the relaxed one" / "report relaxed", which
-    # contradicted that and is printed verbatim by NB4 — the easiest possible
+    # contradicted that and is printed verbatim by NB4 - the easiest possible
     # way for the write-up to quietly revert to the weaker rule.
     out["note"] = (
         f"headline is STRICT matching; relaxed differs by up to {biggest:.1%}, "
-        "which exceeds the 5-point threshold — report the relaxed column beside "
+        "which exceeds the 5-point threshold - report the relaxed column beside "
         "it as a sensitivity analysis and say the conclusion is rule-dependent"
         if biggest > 0.05 else
         f"headline is STRICT matching; relaxed changes nothing material (max "

@@ -109,10 +109,10 @@ fn = np.arange(360) % 5
 nn = nested_probe(Hn, yn, fn)
 flat_n = best_layer(layer_sweep(Hn, yn, fn))[1]
 assert nn["accuracy"] < flat_n, (
-    "on pure noise, max-over-layers must read higher than nested selection — "
+    "on pure noise, max-over-layers must read higher than nested selection - "
     "otherwise the bias this guards against is not being measured")
 ok(f"null check: max-over-layers {flat_n:.1%} vs nested {nn['accuracy']:.1%} "
-   f"at {1/6:.1%} chance — selection bias is real and excluded")
+   f"at {1/6:.1%} chance - selection bias is real and excluded")
 
 ok(f"rung3 from logits = {rung3_from_logits(rows):.1%}; "
    f"per-state keys {sorted(per_state_accuracy(rows))}")
@@ -187,7 +187,7 @@ assert is_refusal("CANNOT ANSWER") and is_refusal("")
 assert not is_refusal("red")
 # Real answers that merely begin with "no" are not refusals. The marker list
 # used to contain a bare "no ", matched as a substring, so "no parking sign"
-# (a live answer — "stop sign" is in the TEXTISH question pool) was scored as
+# (a live answer - "stop sign" is in the TEXTISH question pool) was scored as
 # an abstention: it deflated consistency and pushed the reference drop rate
 # toward the 13 Aug kill criterion.
 for real in ["no parking sign", "No, it is a cat", "no hat",
@@ -257,7 +257,7 @@ ok(f"P2: {v['P2']['verdict']} | curve "
    + ", ".join(f"sev{c[0]}:{c[1]:.0%}" for c in v['P2']['curve']))
 ok(f"collapse check: {v['note']}")
 
-# And a world where P2 is FALSE — the verdict must not rubber-stamp it
+# And a world where P2 is FALSE - the verdict must not rubber-stamp it
 flat = [dict(r) for r in scored]
 for r in flat:
     if r["state"] == "S3" and r["condition"] == "main":
@@ -358,7 +358,7 @@ for i in range(120):
                       "pred": "A" if i % 4 else "F"})
 a1, b1, n1 = pair_main_vs_control(pair_rows)
 assert n1 == 120, f"expected 120 exact pairs, got {n1}"
-# base_image_id would have collapsed 4 mains onto one image — verify that
+# base_image_id would have collapsed 4 mains onto one image - verify that
 # the pairing is genuinely 1:1 on parent id
 assert len({r["base_image_id"] for r in pair_rows}) < 120
 ok(f"{n1} exact pairs from {len({r['base_image_id'] for r in pair_rows})} "
@@ -630,10 +630,10 @@ with open(report_path, "w", encoding="utf-8") as f:
 Generated {datetime.datetime.now():%Y-%m-%d %H:%M}, Python {platform.python_version()},
 numpy {np.__version__}.
 
-The offline test exercises the entire CPU path — schema, fold leakage guard,
+The offline test exercises the entire CPU path - schema, fold leakage guard,
 metadata passthrough, probes, learning curve, consistency scoring, abstention,
 ladder rungs 1-2, exact pairing, transfer, relabel harness, budget logging,
-every figure, the Tier B loader, and the image generators — on synthetic data.
+every figure, the Tier B loader, and the image generators - on synthetic data.
 No GPU and no COCO download required.
 
 **All 24 sections passed.**

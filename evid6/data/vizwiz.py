@@ -1,13 +1,13 @@
 """EVID-6 Tier B: VizWiz items.
 
-Tier A (COCO) is synthetic — we control the intervention exactly, which is
+Tier A (COCO) is synthetic - we control the intervention exactly, which is
 what makes the dose-response analysis possible, but every image is a clean
 photograph that we then broke on purpose.  Tier B exists to answer the
 obvious objection: does any of this hold on images that were genuinely hard
 to begin with?
 
 VizWiz photographs are taken by blind and low-vision users, so unanswerable
-questions there fail for real reasons — the camera moved, the object is out
+questions there fail for real reasons - the camera moved, the object is out
 of frame, the lighting is gone.  The taxonomy either applies to them or it
 does not.
 
@@ -121,7 +121,7 @@ def export_labelling_sheet(cands, out_dir: str):
 def load_labelled_sheet(out_dir: str, img_dir: str = VAL_IMG_DIR):
     """Read the hand-sorted sheet back as EVID-6 Items.
 
-    Tier B items get ``condition="main"`` and no intervention metadata —
+    Tier B items get ``condition="main"`` and no intervention metadata -
     nothing was done to these images, the failure was already there. They
     are therefore excluded from dose-response and used only for the
     classification ladder and the probe's cross-domain test.

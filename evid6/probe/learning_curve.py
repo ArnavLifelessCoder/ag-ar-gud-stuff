@@ -3,7 +3,7 @@
 The plot that answers "your gap is just supervision."
 
 If the probe saturates at n=25 training examples while zero-shot behaviour
-sits near chance, the "accessible but unused" claim is made — and made fairly.
+sits near chance, the "accessible but unused" claim is made - and made fairly.
 """
 
 import numpy as np
@@ -24,10 +24,10 @@ def learning_curve(H, y, folds, layer: int,
     Parameters
     ----------
     H : np.ndarray, shape (N, n_layers+1, hidden_dim)
-    y : np.ndarray of int, shape (N,) — state indices
-    folds : np.ndarray of int, shape (N,) — fold assignments
-    layer : int — which layer to probe
-    ns : tuple of int — training sizes to try
+    y : np.ndarray of int, shape (N,) - state indices
+    folds : np.ndarray of int, shape (N,) - fold assignments
+    layer : int - which layer to probe
+    ns : tuple of int - training sizes to try
     seed : int
 
     Returns

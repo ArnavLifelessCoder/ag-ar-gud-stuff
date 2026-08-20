@@ -1,8 +1,8 @@
 """End-to-end integration test: generator driver through to the P1/P2 verdict.
 
 `smoke_test.py` tests functions in isolation. This runs the actual
-``generate.build()`` driver — the reference-group bookkeeping, the auxiliary
-conditions, the rejection accounting — against a synthetic COCO-format
+``generate.build()`` driver - the reference-group bookkeeping, the auxiliary
+conditions, the rejection accounting - against a synthetic COCO-format
 fixture, then pushes the real items through the whole analysis path with
 simulated model answers.
 
@@ -224,8 +224,8 @@ def main(n_per_state=12, keep=False):
     # Same seed, DIFFERENT PROCESS. The check above cannot see hash-ordering
     # bugs: it builds twice in one interpreter, where PYTHONHASHSEED is fixed.
     # `list(ALL_CAT_NAMES - present)` iterated a set of strings, so rng.choice
-    # picked a different absent category in every new session and S5 — a sixth
-    # of the benchmark — was entirely different run to run.
+    # picked a different absent category in every new session and S5 - a sixth
+    # of the benchmark - was entirely different run to run.
     import subprocess
     probe = os.path.join(work, "probe_determinism.py")
     with open(probe, "w", encoding="utf-8") as f:

@@ -65,9 +65,9 @@
 31.8s 65 Probe cache found at /kaggle/input/notebooks/aaryanadutta/vlm-neurips-nb4/figures/probe_cache.json: ['internvl', 'qwen']
 31.8s 66 Cached models will be reloaded, not recomputed.
 31.8s 67 
-31.8s 68 qwen_cause: loaded from cache — R4 = 73.0% (layers [24, 21, 27, 33, 23])
+31.8s 68 qwen_cause: loaded from cache - R4 = 73.0% (layers [24, 21, 27, 33, 23])
 31.8s 69 
-31.8s 70 internvl_cause: loaded from cache — R4 = 79.2% (layers [21, 21, 21, 19, 20])
+31.8s 70 internvl_cause: loaded from cache - R4 = 79.2% (layers [21, 21, 21, 19, 20])
 31.8s 71 
 31.8s 72 Loading activations for smolvlm_cause...
 35.0s 73 Shape: (1838, 25, 2048)
@@ -76,7 +76,7 @@
 1694.4s 76 Best layer: 17 (acc=74.7% ± 3.2%)
 1694.4s 77 Nested layer selection (this is the reported R4)...
 9204.7s 78 R4 = 72.9% ± 5.5%  layers chosen per fold: [22, 23, 17, 21, 21]
-9204.8s 79 (max-over-layers would have read 74.7% — +1.9% of selection bias, not reported)
+9204.8s 79 (max-over-layers would have read 74.7% - +1.9% of selection bias, not reported)
 9204.8s 80 NOTE: folds disagree on the best layer. Say so in the paper rather than quoting a single layer index.
 9204.8s 81 probe cache written: /kaggle/working/figures/probe_cache.json (['internvl', 'qwen', 'smolvlm'])
 9204.8s 82 probe cache written: /kaggle/working/figures/probe_cache.json (['internvl', 'qwen', 'smolvlm'])
@@ -135,7 +135,7 @@
 9609.9s 135 R2_fewshot: 39.1%
 9609.9s 136 R3_logits: 41.0%
 9609.9s 137 R4_probe: 73.0%
-9609.9s 138 (R1 unparseable replies: 0.6% — reported alongside the accuracy, not hidden)
+9609.9s 138 (R1 unparseable replies: 0.6% - reported alongside the accuracy, not hidden)
 9609.9s 139 (R4 layer chosen inside training folds; max-over-layers would read 74.6%, +1.6%)
 9609.9s 140 ** R1 -> R4 gap: +32.0% **
 9609.9s 141 
@@ -144,7 +144,7 @@
 9609.9s 144 R2_fewshot: 35.8%
 9609.9s 145 R3_logits: 39.1%
 9609.9s 146 R4_probe: 79.2%
-9609.9s 147 (R1 unparseable replies: 0.0% — reported alongside the accuracy, not hidden)
+9609.9s 147 (R1 unparseable replies: 0.0% - reported alongside the accuracy, not hidden)
 9609.9s 148 (R4 layer chosen inside training folds; max-over-layers would read 79.6%, +0.4%)
 9609.9s 149 ** R1 -> R4 gap: +40.7% **
 9609.9s 150 
@@ -153,7 +153,7 @@
 9609.9s 153 R2_fewshot: 21.8%
 9609.9s 154 R3_logits: 19.9%
 9609.9s 155 R4_probe: 72.9%
-9609.9s 156 (R1 unparseable replies: 0.0% — reported alongside the accuracy, not hidden)
+9609.9s 156 (R1 unparseable replies: 0.0% - reported alongside the accuracy, not hidden)
 9609.9s 157 (R4 layer chosen inside training folds; max-over-layers would read 74.7%, +1.9%)
 9609.9s 158 ** R1 -> R4 gap: +49.0% **
 9609.9s 159 
@@ -175,7 +175,7 @@
 9609.9s 175 S3  prioronly   50.7%  (n=67)
 9609.9s 176 S4  main        98.2%  (n=55)
 9609.9s 177 
-9609.9s 178 matching rule: headline is STRICT matching; relaxed differs by up to 7.5%, which exceeds the 5-point threshold — report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
+9609.9s 178 matching rule: headline is STRICT matching; relaxed differs by up to 7.5%, which exceeds the 5-point threshold - report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
 9609.9s 179 relaxed-matching sensitivity numbers:
 9609.9s 180 S0   98.4%  (n=63)
 9609.9s 181 S1   46.0%  (n=63)
@@ -190,7 +190,7 @@
 9609.9s 190 severity 1: 81.0% (n=21)
 9609.9s 191 severity 2: 52.2% (n=23)
 9609.9s 192 severity 3: 34.8% (n=23)
-9609.9s 193 -> S2 and S3 separate — the six-state taxonomy earns its extra state.
+9609.9s 193 -> S2 and S3 separate - the six-state taxonomy earns its extra state.
 9609.9s 194 
 9609.9s 195 ============================================================
 9609.9s 196 InternVL3-2B
@@ -210,7 +210,7 @@
 9609.9s 210 S3  prioronly   50.0%  (n=36)
 9609.9s 211 S4  main        96.4%  (n=28)
 9609.9s 212 
-9609.9s 213 matching rule: headline is STRICT matching; relaxed differs by up to 8.3%, which exceeds the 5-point threshold — report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
+9609.9s 213 matching rule: headline is STRICT matching; relaxed differs by up to 8.3%, which exceeds the 5-point threshold - report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
 9609.9s 214 relaxed-matching sensitivity numbers:
 9609.9s 215 S0  100.0%  (n=30)
 9609.9s 216 S1   51.4%  (n=37)
@@ -225,7 +225,7 @@
 9609.9s 225 severity 1: 91.7% (n=12)
 9609.9s 226 severity 2: 45.5% (n=11)
 9609.9s 227 severity 3: 53.8% (n=13)
-9609.9s 228 -> S2 and S3 separate — the six-state taxonomy earns its extra state.
+9609.9s 228 -> S2 and S3 separate - the six-state taxonomy earns its extra state.
 9610.1s 229 
 9610.1s 230 ============================================================
 9610.1s 231 SmolVLM2-2.2B
@@ -245,7 +245,7 @@
 9610.1s 245 S3  prioronly   45.6%  (n=57)
 9610.1s 246 S4  main        91.7%  (n=60)
 9610.1s 247 
-9610.1s 248 matching rule: headline is STRICT matching; relaxed differs by up to 6.2%, which exceeds the 5-point threshold — report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
+9610.1s 248 matching rule: headline is STRICT matching; relaxed differs by up to 6.2%, which exceeds the 5-point threshold - report the relaxed column beside it as a sensitivity analysis and say the conclusion is rule-dependent
 9610.1s 249 relaxed-matching sensitivity numbers:
 9610.1s 250 S0   98.4%  (n=61)
 9610.1s 251 S1   59.4%  (n=64)
@@ -260,25 +260,25 @@
 9610.1s 260 severity 1: 70.0% (n=20)
 9610.1s 261 severity 2: 55.6% (n=18)
 9610.1s 262 severity 3: 31.6% (n=19)
-9610.1s 263 -> S2 and S3 separate — the six-state taxonomy earns its extra state.
+9610.1s 263 -> S2 and S3 separate - the six-state taxonomy earns its extra state.
 9610.1s 264 
 9610.1s 265 Qwen2.5-VL-3B:
 9610.1s 266 AbsAcc  64.1%   (always-abstain baseline 57.1%)
 9610.1s 267 OverAbs 8.5%  (abstains on answerable items)
 9610.1s 268 UnderAbs 56.5% (answers unanswerable items)
-9610.1s 269 artifact gap +0.5% — abstention is not driven by artifact detection
+9610.1s 269 artifact gap +0.5% - abstention is not driven by artifact detection
 9610.1s 270 
 9610.1s 271 InternVL3-2B:
 9610.1s 272 AbsAcc  71.4%   (always-abstain baseline 57.1%)
 9610.1s 273 OverAbs 45.7%  (abstains on answerable items)
 9610.1s 274 UnderAbs 15.7% (answers unanswerable items)
-9610.1s 275 artifact gap +5.8% — abstention is not driven by artifact detection
+9610.1s 275 artifact gap +5.8% - abstention is not driven by artifact detection
 9610.1s 276 
 9610.1s 277 SmolVLM2-2.2B:
 9610.1s 278 AbsAcc  62.9%   (always-abstain baseline 57.1%)
 9610.1s 279 OverAbs 8.9%  (abstains on answerable items)
 9610.1s 280 UnderAbs 58.2% (answers unanswerable items)
-9610.1s 281 artifact gap -0.3% — abstention is not driven by artifact detection
+9610.1s 281 artifact gap -0.3% - abstention is not driven by artifact detection
 9610.1s 282 
 9610.1s 283 ============================================================
 9610.1s 284 Paired tests (McNemar)
@@ -388,14 +388,14 @@
 9773.9s 388 |---|---|---|---|
 9773.9s 389 | Derived items from one image split across folds inflate the probe | StratifiedGroupKFold grouped on base_image_id, with a hard assert that fails the build rather than warning | 5 folds over 427 base images, 0 folds with overlap | verified |
 9773.9s 390 | Dose-response silently degenerates if intervention metadata is lost between generation and analysis | run_inference.base_row copies the full intervention record into every result row; NB4 errors loudly and the figure drops metadata-less items rather than plotting them at a default | severity present on 150/150 S3 rows, occl_frac on 150/150 S2 rows | verified |
-9773.9s 391 | A silent parser bug mislabels a few percent of items | letter_ids asserts every option token round-trips or the model is dropped; generated replies that commit to no option are recorded as None and counted wrong, with the rate reported | not checked in this run | — |
+9773.9s 391 | A silent parser bug mislabels a few percent of items | letter_ids asserts every option token round-trips or the model is dropped; generated replies that commit to no option are recorded as None and counted wrong, with the rate reported | not checked in this run | - |
 9773.9s 392 | Paired tests pair the wrong items when one image yields several | controls record parent_item_id; McNemar pairs on it, never on base_image_id | 211/211 controls carry an explicit parent id | verified |
-9773.9s 393 | The model detects the artifact rather than the missing evidence | S0-ctrl applies the SAME artifact as its parent state (occluder for S2, degradation for S3) to a region touching no instance; occluders are real object crops from other images, never black boxes | generator enforces artifact match; abstain.artifact_sensitivity reports the residual gap | — |
+9773.9s 393 | The model detects the artifact rather than the missing evidence | S0-ctrl applies the SAME artifact as its parent state (occluder for S2, degradation for S3) to a region touching no instance; occluders are real object crops from other images, never black boxes | generator enforces artifact match; abstain.artifact_sensitivity reports the residual gap | - |
 9773.9s 394 | Pseudo-ground-truth is unstable, so 'consistency' measures decoding noise | references taken from three samples on the untouched image; unstable groups dropped and the drop rate reported; S0 consistency is reported as the measurement's own ceiling | 176/427 reference groups usable, drop rate 58.8% | FAILED |
 9773.9s 395 | Headline numbers depend on an arbitrary answer-matching rule | every consistency figure computed under both strict and relaxed matching; both reported whenever they differ materially | strict vs relaxed matching differ by at most 7.5%; both reported | verified |
 9773.9s 396 | The probe exploits surface shortcuts rather than an evidence representation | CLIP-feature probe as a vision-encoder baseline; leave-one-category-out and severity extrapolation; cross-model transfer in a shared PCA space; learning curve to separate 'accessible' from 'merely learnable' | CLIP ViT-B/32 probe 44.3%; qwen leave-category-out 74.2%; internvl leave-category-out 79.9%; smolvlm leave-category-out 69.5% | verified |
 9773.9s 397 | Generated items do not actually instantiate the state they claim | machine-verifiable acceptance: S2 rejected below 90% realised coverage, S4 below CIEDE2000 12, S5 checked against annotations, S1 against the union bbox; rejection rates published; plus a visual QA pass over ~300 samples and a blind self-relabel | rejections {'S0': 0, 'S1': 49, 'S2': 458, 'S3': 0, 'S4': 877, 'S5': 0}, 1838 items accepted | verified |
-9773.9s 398 | Results cannot be regenerated from the artifacts | every generator deterministic given a seed; runners resume from partial output; all paper numbers regenerate into summary.json; offline smoke test covers the full CPU path on synthetic data | tests/smoke_test.py, 21 sections | — |
+9773.9s 398 | Results cannot be regenerated from the artifacts | every generator deterministic given a seed; runners resume from partial output; all paper numbers regenerate into summary.json; offline smoke test covers the full CPU path on synthetic data | tests/smoke_test.py, 21 sections | - |
 9773.9s 399 
 9773.9s 400 Written to /kaggle/working/figures/threats_table.{md,tex}
 9773.9s 401 Summary saved to /kaggle/working/figures/summary.json

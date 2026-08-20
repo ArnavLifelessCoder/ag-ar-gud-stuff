@@ -8,7 +8,9 @@
 8.2s 8 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
 11.7s 9 805a132 Runbook: tag expected-output blocks so they cannot be pasted as cells
 15.1s 10 Preparing metadata (setup.py) ... [?25l[?25hdone
-15.2s 11 [?25l   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/163.5 kB[0m [31m?[0m eta [36m-:--:--[0m[2K   [91m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m[91m╸[0m[90m━━[0m [32m153.6/163.5 kB[0m [31m6.1 MB/s[0m eta [36m0:00:01[0m[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m163.5/163.5 kB[0m [31m4.2 MB/s[0m eta [36m0:00:00[0m
+15.2s 11 [?25l   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m0.0/163.5 kB[0m [31m?[0m eta [36m-:--:--[0m
+[2K   [91m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m[91m╸[0m[90m━━[0m [32m153.6/163.5 kB[0m [31m6.1 MB/s[0m eta [36m0:00:01[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m163.5/163.5 kB[0m [31m4.2 MB/s[0m eta [36m0:00:00[0m
 16.5s 12 [?25h  Building wheel for docopt (setup.py) ... [?25l[?25hdone
 24.0s 13 PyTorch: 2.10.0+cu128 | CUDA: True
 24.0s 14 GPU: Tesla T4
@@ -19,7 +21,7 @@
 46.5s 19 gpu            Tesla T4
 46.5s 20 
 46.5s 21 closed answer set: black, blue, brown, green, grey, orange, pink, purple, red, white, yellow
-56.1s 22 rebase_items: 1838 items — 0 already valid, 1838 remapped, 0 unresolved
+56.1s 22 rebase_items: 1838 items - 0 already valid, 1838 remapped, 0 unresolved
 56.1s 23 make_closed_manifest: 1838 items, 857 questions rewritten -> /kaggle/working/items_closed.jsonl
 56.1s 24 Closed-set manifest: /kaggle/working/items_closed.jsonl
 56.1s 25 Example question: 'What colour is the wine glass?'
@@ -63,8 +65,8 @@
 1293.8s 63 ======================================================================
 1293.8s 64 model         free-form drop   closed-set drop     verdict
 1293.8s 65 qwen                  58.8%            41.0%        FAIL
-1293.8s 66 internvl              78.7%           not run           —
-1293.8s 67 smolvlm               59.0%           not run           —
+1293.8s 66 internvl              78.7%           not run           -
+1293.8s 67 smolvlm               59.0%           not run           -
 1293.8s 68 
 1293.8s 69 Gate: drop rate must be <= 35% (plan, 13 Aug).
 1293.8s 70 

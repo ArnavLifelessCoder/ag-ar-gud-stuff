@@ -5,7 +5,7 @@ One forward pass gives:
   - argmax answer (rung 1)
   - cached residual stream for probing (rung 4)
 
-Do NOT run these as separate passes — the pairing is what makes the
+Do NOT run these as separate passes - the pairing is what makes the
 comparison valid.
 
 T4-safe: fp16 + SDPA only.  No bf16 (Turing does not have it), no
@@ -394,7 +394,7 @@ def run_choice_generation(model_id: str, items_path: str, tag: str, prompt_fn,
     """Rung 1 / rung 2: the forced-choice task answered by GENERATION.
 
     This is the deployed behaviour the paper compares against the probe.  It
-    is deliberately not the option-token argmax (that is rung 3) — the model
+    is deliberately not the option-token argmax (that is rung 3) - the model
     has to actually emit a letter, and replies that commit to nothing are
     recorded as ``pred=None`` and counted as incorrect.
 
@@ -431,7 +431,7 @@ def run_choice_generation(model_id: str, items_path: str, tag: str, prompt_fn,
                 n_unparsed += 1
             row = base_row(it)
             row["raw"] = raw
-            row["pred"] = letter          # may be None — that is a real result
+            row["pred"] = letter          # may be None - that is a real result
             f.write(json.dumps(row) + "\n")
             if n % 20 == 0:
                 f.flush()

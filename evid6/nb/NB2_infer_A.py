@@ -1,6 +1,6 @@
 # %% [markdown]
-# # NB2: Inference — Qwen2.5-VL-3B (Model A)
-# **Accelerator: T4 GPU** — ~1.5 hours of GPU quota.
+# # NB2: Inference - Qwen2.5-VL-3B (Model A)
+# **Accelerator: T4 GPU** - ~1.5 hours of GPU quota.
 #
 # ## What this notebook does
 # 1. Loads Qwen2.5-VL-3B in fp16 with SDPA attention
@@ -50,7 +50,7 @@ print(f"Using items from: {ITEMS_PATH}")
 
 # NB1 recorded absolute paths from its own session (/kaggle/working/evid6/...).
 # Here the images arrive as an attached dataset under a different root, so
-# those paths do not resolve and the first Image.open would kill the pass —
+# those paths do not resolve and the first Image.open would kill the pass -
 # after the model has already loaded. Rebase before scoring anything.
 ITEMS_PATH = rebase_items(ITEMS_PATH, [NB1_DATA, "/kaggle/input", "/kaggle/working"])
 print(f"Rebased items: {ITEMS_PATH}")
@@ -86,7 +86,7 @@ for i, tid in enumerate(opt_ids):
     print(f"  {L} -> token {tid} -> '{decoded}' {'✓' if decoded == L else '✗ FAIL'}")
 
 # %% [markdown]
-# ## Step 2: Smoke test — one item
+# ## Step 2: Smoke test - one item
 
 # %%
 from prompts import CAUSE_PROMPT, CLEAN_PROMPT, ABSTAIN_PROMPT, REPAIR_PROMPT
@@ -142,7 +142,7 @@ with stage(f"{MODEL_TAG}_clean_ref"):
 
 # %%
 # 3b. The TREATMENT answers: the same question on the degraded images.
-#     Greedy, one sample. S5 is skipped — no evidence was removed there, so
+#     Greedy, one sample. S5 is skipped - no evidence was removed there, so
 #     consistency is undefined (schema.CONSISTENCY_STATES).
 print("Generating treatment answers on degraded images...")
 with stage(f"{MODEL_TAG}_treat"):
@@ -178,11 +178,11 @@ else:
 
 # %% [markdown]
 # ## Step 4: Cause-prompt inference (with hidden states)
-# This is the main sweep — forced-choice logit scoring + residual stream caching.
+# This is the main sweep - forced-choice logit scoring + residual stream caching.
 
 # %%
 # NOTE: the model stays loaded from Step 1 and is handed to every runner
-# below.  Do not call load() again here — two copies of a 3B model in fp16
+# below.  Do not call load() again here - two copies of a 3B model in fp16
 # will not fit alongside activations on a 15 GB T4.
 from run_inference import run
 
@@ -201,7 +201,7 @@ with stage(f"{MODEL_TAG}_cause", n_items=n_items):
     )
 
 # %% [markdown]
-# ## Step 4b: Rung 1 and rung 2 — the SAME task, answered by generation
+# ## Step 4b: Rung 1 and rung 2 - the SAME task, answered by generation
 # Rung 3 (above) reads option-token logits. Rung 1 is what the model actually
 # emits when asked. Rung 2 adds an 8-example text-only in-context prefix built
 # from TRAINING-FOLD items only, so it cannot leak the test fold.

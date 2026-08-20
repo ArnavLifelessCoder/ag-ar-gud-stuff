@@ -1,10 +1,10 @@
-# EVID-6 — Kaggle runbook
+# EVID-6 - Kaggle runbook
 
 Copy-paste cells, in order. Every path and import in here was verified against
 the code by cloning the repo and replicating Kaggle's `sys.path` layout.
 
 > **Reading this file:** blocks tagged ```python`` or ```bash`` are cells to
-> paste. Blocks tagged ```text`` are expected *output* — reading them into a
+> paste. Blocks tagged ```text`` are expected *output* - reading them into a
 > cell produces `SyntaxError: invalid syntax`, which is exactly what happened
 > once with the NB6 gate output.
 
@@ -27,17 +27,17 @@ looked for `/kaggle/input/evid6-nb1-output` and asserted on the first cell.
 | NB3 | GPU (T4 or P100) | **On** | NB1 output |
 | NB4 | **CPU** | **On** | NB1 + NB2 + NB3 outputs |
 
-Internet must be **On** everywhere — NB1 clones the repo, NB2/NB3 download
+Internet must be **On** everywhere - NB1 clones the repo, NB2/NB3 download
 models, NB4 downloads CLIP.
 
-## Interactive vs Save & Run All — this one costs you work
+## Interactive vs Save & Run All - this one costs you work
 
 `/kaggle/working` is **wiped when a session ends**, and Kaggle culls idle
 interactive sessions long before a long job's results are safe.
 
 - **Interactive** (the ▶ buttons): fine for pre-flight checks and anything you
   watch. If you start a 90-minute run and walk away, the notebook finishes,
-  then the session idles out and takes `/kaggle/working` — figures included —
+  then the session idles out and takes `/kaggle/working` - figures included -
   with it.
 - **Save Version → Save & Run All (Commit):** runs the whole notebook detached
   in a batch container and **permanently persists** `/kaggle/working` as that
@@ -50,12 +50,12 @@ was a batch run.)
 
 ---
 
-## Cell A — the setup cell (paste as the FIRST cell of all four notebooks)
+## Cell A - the setup cell (paste as the FIRST cell of all four notebooks)
 
 **Always refreshes the code**, and never touches generated images. An earlier
 version of this cell skipped the clone when `/kaggle/working/evid6` already
 existed, which meant a pushed fix never arrived and you kept running the old
-copy — with a traceback pointing at line numbers that no longer exist.
+copy - with a traceback pointing at line numbers that no longer exist.
 
 ```python
 # --- EVID-6 setup: run FIRST, before anything else. Safe to re-run. ---
@@ -94,14 +94,14 @@ Expected output ends with:
 
 ---
 
-## NB1 — build the dataset (CPU, no quota)
+## NB1 - build the dataset (CPU, no quota)
 
 **Add Input:** search datasets for a COCO 2017 set that includes
 `annotations/instances_val2017.json` and the `val2017` images. The exact
-dataset does not matter — `init_coco()` finds whatever you attached. Then paste
+dataset does not matter - `init_coco()` finds whatever you attached. Then paste
 the notebook body from `evid6/nb/NB1_build.ipynb`, with **Cell A above it**.
 
-### Cell B — dependency check
+### Cell B - dependency check
 
 ```python
 import importlib
@@ -118,7 +118,7 @@ If anything says MISSING:
 !pip install -q pycocotools scikit-image
 ```
 
-### Cell C — run the tests before spending anything
+### Cell C - run the tests before spending anything
 
 ```python
 !cd /kaggle/working/evid6 && python tests/smoke_test.py 2>&1 | tail -20
@@ -128,7 +128,7 @@ If anything says MISSING:
 !cd /kaggle/working/evid6 && python tests/test_pipeline_e2e.py 2>&1 | tail -20
 ```
 
-`tail -20`, not `tail -5` — a traceback is longer than five lines, so `-5` hides
+`tail -20`, not `tail -5` - a traceback is longer than five lines, so `-5` hides
 the failing file and line and shows you only the last frame.
 
 Expect `ALL CHECKS PASSED` and `END-TO-END PIPELINE OK`. **If either fails,
@@ -137,7 +137,7 @@ stop here.**
 ### Then: pilot first
 
 NB1's own build cell says `build(n_per_state=150, seed=0)`. **Edit that number
-to 10** — do not paste a new cell, or you get `NameError: name 'build' is not
+to 10** - do not paste a new cell, or you get `NameError: name 'build' is not
 defined`, because `build` is imported by an earlier cell in the notebook.
 
 If you would rather run it standalone, this cell is self-contained and does the
@@ -152,11 +152,11 @@ init_coco()                 # no arguments: finds COCO wherever it is mounted
 items = build(n_per_state=10, seed=0)
 save_items(items, "/kaggle/working/items.jsonl")
 
-# The QA sheets are the whole point of the pilot — build() alone does not
+# The QA sheets are the whole point of the pilot - build() alone does not
 # make them, it only writes images.
 contact_sheets(items, "/kaggle/working/qa", per_state=48, seed=0)
 triptychs(items, "/kaggle/working/qa", n=24, seed=0)
-print(f"{len(items)} items — now open /kaggle/working/qa/index.html")
+print(f"{len(items)} items - now open /kaggle/working/qa/index.html")
 ```
 
 **What this writes** (all under `/kaggle/working`, all of it session-local until
@@ -170,14 +170,14 @@ you Save Version):
 | `qa/` | contact sheets, triptychs, `index.html` |
 
 Nothing leaves the session until **Save Version**. Closing the tab or letting
-the session expire loses all of it — which is fine for a pilot, and is why the
+the session expire loses all of it - which is fine for a pilot, and is why the
 full build ends with a Save.
 
 `init_coco()` with no arguments searches `/kaggle/input` for
 `instances_val2017.json` and the matching image directory, and prints both.
-Kaggle hosts several COCO 2017 datasets with different layouts —
+Kaggle hosts several COCO 2017 datasets with different layouts -
 `<ds>/coco2017/annotations/…`, `<ds>/annotations/…`, images sometimes under
-`images/val2017` — and a hard-coded path gives you a `FileNotFoundError` from
+`images/val2017` - and a hard-coded path gives you a `FileNotFoundError` from
 inside `pycocotools` that names the path it wanted, not the one you have.
 
 To see what it found before building anything:
@@ -194,13 +194,13 @@ Run to the end. Then **open `/kaggle/working/qa/index.html`** (Output tab → th
 
 Check specifically:
 
-- **S3 severity 3** — degraded but still *there*? If it reads as deletion, S3
+- **S3 severity 3** - degraded but still *there*? If it reads as deletion, S3
   has collapsed into S2 and P1/P2 cannot separate. Raise `S3_TARGET_RES[3]`
   above 8 and rebuild.
-- **S4** — would a person genuinely be unsure which object is meant?
-- **S2** — does the occluder read as an object, not a grey box?
+- **S4** - would a person genuinely be unsure which object is meant?
+- **S2** - does the occluder read as an object, not a grey box?
 
-### Then the real build — clear the pilot first
+### Then the real build - clear the pilot first
 
 The pilot's images do **not** all get overwritten by the full build. Once a
 state's quota fills, the generator skips it for later images, which shifts the
@@ -216,7 +216,7 @@ for f in ["/kaggle/working/items.jsonl",
           "/kaggle/working/evid6/build_stats.json"]:
     if os.path.isfile(f):
         os.remove(f)
-print("cleared — ready for the full build")
+print("cleared - ready for the full build")
 ```
 
 Then set `n_per_state=150`, **Run All**, and check:
@@ -227,7 +227,7 @@ print(json.load(open("/kaggle/working/evid6/build_stats.json")))
 ```
 
 `build()` prints a `WARNING: … belong to no manifest row` line if any stale
-images survived. If you see it, run the clear cell and rebuild — or pass
+images survived. If you see it, run the clear cell and rebuild - or pass
 `build(..., prune_orphans=True)`.
 
 Then **Save Version** (Quick Save is fine). This publishes `items.jsonl`,
@@ -235,7 +235,7 @@ Then **Save Version** (Quick Save is fine). This publishes `items.jsonl`,
 
 ---
 
-## The setup cell (first cell of NB2, NB3, NB4 — identical)
+## The setup cell (first cell of NB2, NB3, NB4 - identical)
 
 Every notebook below starts with this one cell. It clones the repo fresh, so it
 always pulls the latest code. It prints the commit it installed.
@@ -261,14 +261,14 @@ print(subprocess.run(["git","-C","/tmp/evid6repo","log","-1","--format=%h %s"],
 Each notebook is a complete, ordered script already in the repo, so after the
 setup cell you run the whole thing with one `%run` line. Every notebook
 verifies its letter tokens and smoke-tests one item **before** the expensive
-sweep, so it fails fast if anything is wrong — you do not need separate check
+sweep, so it fails fast if anything is wrong - you do not need separate check
 cells.
 
 ---
 
-## NB2 — Qwen2.5-VL-3B (T4, ~3 h)
+## NB2 - Qwen2.5-VL-3B (T4, ~3 h)
 
-**Add Input:** Notebook Output -> your NB1 notebook. Accelerator **GPU** (T4 or P100 — both are Pascal/Turing, both fp16 + SDPA, no code change).
+**Add Input:** Notebook Output -> your NB1 notebook. Accelerator **GPU** (T4 or P100 - both are Pascal/Turing, both fp16 + SDPA, no code change).
 
 **Cell 1:** the setup cell above.
 
@@ -281,7 +281,7 @@ env_report()
 ```
 
 Expect `transformers 5.x`, `auto_class AutoModelForImageTextToText` (or the
-older `AutoModelForVision2Seq` — both work), `cuda True`, `gpu Tesla T4`.
+older `AutoModelForVision2Seq` - both work), `cuda True`, `gpu Tesla T4`.
 
 **Cell 3:** run the whole notebook.
 
@@ -297,14 +297,14 @@ rung 1, rung 2, abstain, repair. It prints `[budget]` after each pass and a
 image paths automatically in setup.
 
 Budget: seven passes, **~3 h**, not the plan's 1.5. If it errors at `load()` or
-the token round-trip, stop — that is the fail-fast working, and no sweep quota
+the token round-trip, stop - that is the fail-fast working, and no sweep quota
 was spent. **Save Version** when it finishes.
 
 ---
 
-## NB3 — InternVL3-2B + SmolVLM2-2.2B (T4, ~2 h)
+## NB3 - InternVL3-2B + SmolVLM2-2.2B (T4, ~2 h)
 
-**Add Input:** Notebook Output -> your NB1 notebook. Accelerator **GPU** (T4 or P100 — both are Pascal/Turing, both fp16 + SDPA, no code change).
+**Add Input:** Notebook Output -> your NB1 notebook. Accelerator **GPU** (T4 or P100 - both are Pascal/Turing, both fp16 + SDPA, no code change).
 
 **Cell 1:** the setup cell.
 
@@ -317,11 +317,11 @@ from run_inference import load
 proc, model = load("OpenGVLab/InternVL3-2B-hf")   # -hf = HF-native config
 msgs = [{"role":"user","content":[{"type":"image"},{"type":"text","text":"hi"}]}]
 print(proc.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False))
-print("InternVL loads — NB3 will run")
+print("InternVL loads - NB3 will run")
 import gc, torch; del model, proc; gc.collect(); torch.cuda.empty_cache()
 ```
 
-If that raises, InternVL needs its own loader — tell me and I will give you a
+If that raises, InternVL needs its own loader - tell me and I will give you a
 one-line edit to skip Model B and run only SmolVLM. If it prints the template,
 continue.
 
@@ -334,7 +334,7 @@ when Model C begins.
 import subprocess, sys
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", "num2words"],
                check=True)
-print("num2words installed — SmolVLM2 can load")
+print("num2words installed - SmolVLM2 can load")
 ```
 
 **If an older cell already failed with** `Unrecognized configuration class
@@ -360,31 +360,31 @@ Same passes as NB2, for InternVL3 then SmolVLM2, one model resident at a time.
 
 ---
 
-## NB4 — analysis (CPU, ~1.5 h, no quota)
+## NB4 - analysis (CPU, ~1.5 h, no quota)
 
-**Attach exactly three inputs** — Add Input -> Notebook Output: your NB1, NB2
+**Attach exactly three inputs** - Add Input -> Notebook Output: your NB1, NB2
 and NB3 notebooks. Accelerator **CPU**.
 
 **Do not attach the COCO dataset.** NB4 never reads it, and its ~164,000 files
 make the input search crawl.
 
-### Can NB4 use a GPU? No — it would be slower.
+### Can NB4 use a GPU? No - it would be slower.
 
 The cost is `sklearn.LogisticRegression`, which has no CUDA path. The CLIP
 baseline is CPU-bound too: `clip_baseline.py` never moves the model to a
 device. Meanwhile Kaggle's own dialog warns that enabling a GPU *reduces the
-number of CPUs*, and the probe is BLAS-threaded across cores — so a GPU session
+number of CPUs*, and the probe is BLAS-threaded across cores - so a GPU session
 gives you fewer cores, burns quota, and finishes later. Leave it on CPU.
 
 Measured runtime: 20.9 s per layer on Qwen's 2,048-dim activations, so the
 sweep is ~13 min and the **nested probe ~52 min**, plus ~15 min for InternVL.
-Budget ~1.5 h wall clock. It costs no GPU quota, so start it and walk away —
+Budget ~1.5 h wall clock. It costs no GPU quota, so start it and walk away -
 via Save & Run All, not interactively.
 
 **Cell 1:** the setup cell. It must print commit `3b49e39` or later; that is
 the first commit where NB4 can find the outputs and survive the NaN rows.
 
-**Cell 2 — pre-flight, ~10 s.** Run this *interactively* before committing to a
+**Cell 2 - pre-flight, ~10 s.** Run this *interactively* before committing to a
 90-minute batch run, so a missing input fails in seconds rather than at the end.
 
 ```python
@@ -397,7 +397,7 @@ for r in sorted(os.listdir("/kaggle/input")):
 ```
 
 If it raises, it names what *is* attached. Neither the NB2 nor NB3 output
-carries `items.jsonl` or the images — only `items_local.jsonl` — so **NB1 must
+carries `items.jsonl` or the images - only `items_local.jsonl` - so **NB1 must
 be attached** for the manifest and the CLIP baseline.
 
 **Cell 3:** run the whole notebook.
@@ -417,13 +417,13 @@ figure, `summary.json`, and the threats table.
 **No `NOT FOUND`** in the result-loading lines. One per model per pass; any
 miss means an input is not attached.
 
-**`DROPPED 5 ... non-finite`** on `qwen_cause` is expected — five of Qwen's 900
+**`DROPPED 5 ... non-finite`** on `qwen_cause` is expected - five of Qwen's 900
 aligned rows have NaN activations from a bad forward pass. NB4 drops them,
 prints their item ids, and continues. That exclusion goes in the paper.
 
 **R4 is the nested number.** Each outer fold picks its probe layer using only
 its training folds. NB4 also prints what max-over-layers *would* have said, as
-the bias avoided — on pure noise that gap is +2.4 points. Quote the nested one.
+the bias avoided - on pure noise that gap is +2.4 points. Quote the nested one.
 
 **Check `layers_chosen`.** If the five outer folds disagree, "the probe reads it
 at layer k" is not an honest sentence. And read the strict-vs-relaxed delta:
@@ -453,7 +453,7 @@ answers, and an archive you browse on your laptop is exactly where you would
 see them by accident. The key stays in the Kaggle output; fetch it when the
 48-hour cooling-off ends and you actually score the sheet.
 
-Open `relabel_sheet.csv` and **start the 48-hour clock** — `score_sheet` warns
+Open `relabel_sheet.csv` and **start the 48-hour clock** - `score_sheet` warns
 if you score it early.
 
 **Keep `probe_cache.json`.** Attach this run's output to any future NB4 and the
@@ -461,11 +461,11 @@ multi-hour probe is skipped.
 
 Expect the consistency block to report a failed criterion: reference stability
 breaches its 35% gate on all three models (58.8 / 78.7 / 59.0%). That is a
-known, documented negative — see `NB2_NB3_ANALYSIS.md` §3 — not a bug in NB4.
+known, documented negative - see `NB2_NB3_ANALYSIS.md` §3 - not a bug in NB4.
 
 ---
 
-## NB5 — SmolVLM activations (GPU, ~0.7 h) — optional but recommended
+## NB5 - SmolVLM activations (GPU, ~0.7 h) - optional but recommended
 
 NB3 ran SmolVLM behaviourally only (`CACHE_SMOL_HIDDEN = False`), so there is
 no rung-4 probe for it. That gap sits on the most interesting open question:
@@ -477,7 +477,7 @@ capability. Both answers are publishable; not knowing is not.
 
 **Attach:** NB1's output. NB3's output too is harmless. Accelerator **GPU**.
 
-This runs **only** SmolVLM's cause pass — re-running all of NB3 would redo
+This runs **only** SmolVLM's cause pass - re-running all of NB3 would redo
 InternVL's 4.85 GPU-hours for results that already exist.
 
 **Cell 1:** the setup cell.
@@ -495,7 +495,7 @@ InternVL's 4.85 GPU-hours for results that already exist.
 ```
 
 It verifies the option tokens, then smoke-tests **one item with hidden states
-and asserts they are finite** — the check NB3 skipped for this model, and whose
+and asserts they are finite** - the check NB3 skipped for this model, and whose
 absence let eight NaN rows through on Qwen unnoticed until NB4. After the pass
 it re-checks every shard and reports the R3 accuracy so you can confirm it
 matches NB3's 19.9%.
@@ -508,10 +508,10 @@ only SmolVLM's probe is computed.
 
 ---
 
-## NB6 — closed-set reference rerun (GPU, ~2.6 h) — the only route to P1/P2
+## NB6 - closed-set reference rerun (GPU, ~2.6 h) - the only route to P1/P2
 
 The free-form clean-reference task failed its own gate on all three models:
-three samples at T=0.7 agreed on 176/427, 91/427 and 175/427 groups — drop
+three samples at T=0.7 agreed on 176/427, 91/427 and 175/427 groups - drop
 rates of **58.8 / 78.7 / 59.0%** against a 35% ceiling. No reanalysis fixes
 that; the reference *answers* are unstable. The remedy is a closed answer set.
 
@@ -525,7 +525,7 @@ that; the reference *answers* are unstable. The remedy is a closed answer set.
 ```
 
 It rewrites every question to "What colour is the {category}?" via
-`make_closed_manifest` (only the question changes — ids, states, conditions,
+`make_closed_manifest` (only the question changes - ids, states, conditions,
 reference groups and image paths are untouched, so rows still align with the
 activations), then reruns **only** `clean` and `treat` under `_clean_v2` /
 `_treat_v2` tags. The ladder, abstention and repair passes never touch the
@@ -534,10 +534,10 @@ numbers you already have.
 
 **Qwen runs first as a gate** (~0.33 h). If its drop rate is still above 35%,
 the notebook stops and tells you so rather than spending the remaining ~2.2 h.
-Two independent reference designs failing is a finding about the measure — set
+Two independent reference designs failing is a finding about the measure - set
 `FORCE = True` if you want that documented for all three models.
 
-Expected output — **read this, do not paste it into a cell**:
+Expected output - **read this, do not paste it into a cell**:
 
 ```text
 closed-set compliance: N/M (XX.X%) of sampled answers are exactly one listed colour
@@ -545,7 +545,7 @@ references: N/427 usable, drop rate XX.X%
 GATE PASSED / GATE FAILED
 ```
 
-Compliance is measured, not assumed — near-misses like "dark red" are counted
+Compliance is measured, not assumed - near-misses like "dark red" are counted
 as non-compliant rather than snapped onto the set.
 
 Then **Save & Run All**, and rerun NB4 with this output attached. NB4 prefers
@@ -586,7 +586,7 @@ Paper freeze 22 Aug, submit 29 Aug.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `NOT FOUND` for every result in NB4 | an output is not attached, or was never Saved | Add Input -> Notebook Output for each of NB1/NB2/NB3; only a **committed** run produces an attachable output |
-| `ImportError: cannot import name 'AutoModelForVision2Seq'` | transformers 5.x renamed it | fixed in code — re-run Cell A, then restart |
+| `ImportError: cannot import name 'AutoModelForVision2Seq'` | transformers 5.x renamed it | fixed in code - re-run Cell A, then restart |
 | `FileNotFoundError: .../instances_val2017.json` | the attached COCO has a different layout | use `init_coco()` with no arguments; run `find_coco("/kaggle/input")` to see what it found |
 | `items.jsonl not found ... Currently attached: {...}` | NB1 output not attached | the message lists what IS attached; add NB1's Notebook Output |
 | Figures gone after you came back | ran interactively, session idled out and wiped `/kaggle/working` | re-run via **Save & Run All**; only committed runs persist |
@@ -594,12 +594,12 @@ Paper freeze 22 Aug, submit 29 Aug.
 | `ModuleNotFoundError: schema` | Cell A not run first, or run after imports | re-run Cell A, then Run All |
 | `NameError: name 'build' is not defined` | pasted the build line as a new cell | edit NB1's existing build cell, or use the self-contained pilot cell |
 | A fix you just pushed has no effect | old code still on disk, or module cached in the kernel | re-run Cell A (it now always refreshes), then **Restart & Run All** |
-| Traceback points at a line that does not match the file | same as above — stale copy | re-run Cell A, then restart |
+| Traceback points at a line that does not match the file | same as above - stale copy | re-run Cell A, then restart |
 | `FileNotFoundError` on an image, first item of NB2/NB3 | `rebase_items` skipped | run the setup cell that reassigns `ITEMS_PATH` |
 | `items.jsonl not found … Currently attached: {…}` | NB1 output not attached, or NB1 not Saved | Save NB1 (Version), then Add Input → Notebook Output → your NB1 notebook |
 | `Unrecognized configuration class … for AutoModelForImageTextToText` | model ships a custom config | use the `-hf` checkpoint (InternVL3-2B-hf); code now hints this automatically |
 | Image paths unresolved in the CLIP cell | NB1 output attached under a different name | check `NB1_PATH` at the top of NB4 |
-| Session died mid-sweep | Kaggle timeout | just re-run the pass — every runner is resumable |
+| Session died mid-sweep | Kaggle timeout | just re-run the pass - every runner is resumable |
 
 ## Known issues still open
 
@@ -611,4 +611,4 @@ Four small ones, deliberately unfixed, none caught by a test. Detail in
 - `gen_S4` compares annotation-list order, not the two largest instances
 - `stats.consistency_rate` duplicates `consistency.agree` with weaker matching
 - relaxed matching favours short answers, and degraded images plausibly elicit
-  shorter answers — `summarise_both` reporting both rules is the mitigation
+  shorter answers - `summarise_both` reporting both rules is the mitigation

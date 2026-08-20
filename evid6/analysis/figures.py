@@ -159,7 +159,7 @@ def fig_learning_curve(curves: dict, zero_shot_acc: dict = None,
     curves : dict
         {model_name: [(n, mean_acc, std_acc), ...], ...}
     zero_shot_acc : dict or None
-        {model_name: float} — horizontal dashed lines for zero-shot baseline.
+        {model_name: float} - horizontal dashed lines for zero-shot baseline.
     """
     _ensure_dir(out_path)
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -281,7 +281,7 @@ def fig_confusion(results: list, model_name: str = "",
     ax.set_yticklabels(STATES)
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
-    ax.set_title(f"Confusion Matrix{' — ' + model_name if model_name else ''}")
+    ax.set_title(f"Confusion Matrix{' - ' + model_name if model_name else ''}")
 
     # Annotate cells
     for i in range(n):

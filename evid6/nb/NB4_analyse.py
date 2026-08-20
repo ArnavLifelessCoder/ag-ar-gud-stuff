@@ -1,6 +1,6 @@
 # %% [markdown]
-# # NB4: Analysis — Probes, Ladder, CLIP Baseline, Stats, Figures
-# **Accelerator: CPU only** — does not consume GPU quota.
+# # NB4: Analysis - Probes, Ladder, CLIP Baseline, Stats, Figures
+# **Accelerator: CPU only** - does not consume GPU quota.
 #
 # ## What this notebook does
 # 1. Loads all results from NB1, NB2, NB3
@@ -167,7 +167,7 @@ if any(v == "closed-set (v2)" for v in REFERENCE_TASK.values()):
     print("  are unaffected -- they never touch the reference.")
 
 # %% [markdown]
-# ## 1. Evaluation Ladder — Rung 3 (logit argmax)
+# ## 1. Evaluation Ladder - Rung 3 (logit argmax)
 
 # %%
 from ladder import rung3_from_logits, per_state_accuracy, rung1_from_text
@@ -249,7 +249,7 @@ for tag_prefix in MODELS:
         sweeps[tag_prefix] = [tuple(x) for x in c["sweep"]]
         best_layers[tag_prefix] = tuple(c["best_layer"])
         probe_r4[tag_prefix] = c["r4"]
-        print(f"\n{tag}: loaded from cache — R4 = {c['r4']['accuracy']:.1%} "
+        print(f"\n{tag}: loaded from cache - R4 = {c['r4']['accuracy']:.1%} "
               f"(layers {c['r4']['layers_chosen']})")
         continue
 
@@ -312,7 +312,7 @@ for tag_prefix in MODELS:
     print(f"  R4 = {nb['accuracy']:.1%} ± {nb['std']:.1%}  "
           f"layers chosen per fold: {nb['layers_chosen']}")
     print(f"  (max-over-layers would have read {nb['flat_max_over_layers']:.1%}"
-          f" — {nb['selection_bias']:+.1%} of selection bias, not reported)")
+          f" - {nb['selection_bias']:+.1%} of selection bias, not reported)")
     if len(set(nb["layers_chosen"])) > 1:
         print("  NOTE: folds disagree on the best layer. Say so in the paper "
               "rather than quoting a single layer index.")
@@ -418,7 +418,7 @@ except Exception as e:
     print("  rather than implying it passed.")
 
 # Kill criterion: if CLIP >= the VLM probe, drop absolute numbers from abstract.
-# Compare against the nested R4, not the max-over-layers number — comparing a
+# Compare against the nested R4, not the max-over-layers number - comparing a
 # selection-inflated probe against an honest CLIP baseline would let the kill
 # criterion pass on bias alone.
 for tag_prefix, nb in probe_r4.items():
@@ -453,7 +453,7 @@ for tag_prefix, model_name in MODELS.items():
         entry["R1_zeroshot"] = d["accuracy"]
         detail["R1"] = d
     else:
-        print(f"  {tag_prefix}: no rung-1 generations found — R1 omitted "
+        print(f"  {tag_prefix}: no rung-1 generations found - R1 omitted "
               f"(do NOT substitute R3 for it)")
 
     r2_rows = results.get(f"{tag_prefix}_rung2", [])
@@ -469,11 +469,11 @@ for tag_prefix, model_name in MODELS.items():
             detail["R1_on_R2_items"] = rung1_zeroshot(r1_same)
 
     if tag_prefix in probe_r4:
-        # Nested selection, not max-over-layers — see section 3.
+        # Nested selection, not max-over-layers - see section 3.
         entry["R4_probe"] = probe_r4[tag_prefix]["accuracy"]
         detail["R4"] = probe_r4[tag_prefix]
     elif tag_prefix in best_layers:
-        print(f"  {tag_prefix}: nested probe missing — R4 omitted rather than "
+        print(f"  {tag_prefix}: nested probe missing - R4 omitted rather than "
               f"falling back to the biased max-over-layers number")
 
     rung_data[tag_prefix] = entry
@@ -485,7 +485,7 @@ for tag_prefix, model_name in MODELS.items():
             print(f"  {k}: {entry[k]:.1%}")
     if "R1" in detail:
         print(f"  (R1 unparseable replies: {detail['R1']['unparsed_rate']:.1%}"
-              f" — reported alongside the accuracy, not hidden)")
+              f" - reported alongside the accuracy, not hidden)")
     if "R4" in detail:
         print(f"  (R4 layer chosen inside training folds; max-over-layers "
               f"would read {detail['R4']['flat_max_over_layers']:.1%}, "
@@ -601,7 +601,7 @@ for tag_prefix, model_name in MODELS.items():
     if a["UnderAbs"] is not None:
         print(f"  UnderAbs {a['UnderAbs']:.1%} (answers unanswerable items)")
     if art["artifact_gap"] is not None:
-        print(f"  artifact gap {art['artifact_gap']:+.1%} — {art['interpretation']}")
+        print(f"  artifact gap {art['artifact_gap']:+.1%} - {art['interpretation']}")
 
 # %% [markdown]
 # ## 8. Statistical tests
@@ -822,12 +822,12 @@ print(header)
 print("-" * len(header))
 
 def _f(d, k):
-    return f"{d[k]:.1%}" if k in d and d[k] is not None else "—"
+    return f"{d[k]:.1%}" if k in d and d[k] is not None else "-"
 
 for tag_prefix, model_name in MODELS.items():
     if tag_prefix in rung_data:
         rd = rung_data[tag_prefix]
-        cl = f"{clip_acc:.1%}" if clip_acc is not None else "—"
+        cl = f"{clip_acc:.1%}" if clip_acc is not None else "-"
         print(f"{model_name:<20} {_f(rd,'R1_zeroshot'):>9} "
               f"{_f(rd,'R2_fewshot'):>9} {_f(rd,'R3_logits'):>9} "
               f"{_f(rd,'R4_probe'):>9} {cl:>9}")
@@ -850,11 +850,11 @@ for tag_prefix, model_name in MODELS.items():
     bsc = summ["by_state_condition"]
     def g(st):
         v = bsc.get(f"{st}|main")
-        return f"{v[0]:.1%}" if v and v[0] is not None else "—"
+        return f"{v[0]:.1%}" if v and v[0] is not None else "-"
     fl = summ.get("prior_floor_pooled") or (None, 0)
     print(f"{model_name:<20} {g('S0'):>9} {g('S1'):>7} {g('S2'):>7} "
           f"{g('S3'):>7} {g('S4'):>7} "
-          f"{(f'{fl[0]:.1%}' if fl[0] is not None else '—'):>8}")
+          f"{(f'{fl[0]:.1%}' if fl[0] is not None else '-'):>8}")
 
 # %% [markdown]
 # ## 11. Blind self-relabel sheet
@@ -895,7 +895,7 @@ if _prior_key and _prior_sheet and not os.path.isfile(
 elif not os.path.isfile(os.path.join(RELABEL_DIR, "relabel_sheet.csv")):
     export_sheet(main_items, RELABEL_DIR, n=100, seed=0)
 else:
-    print(f"Sheet already exists at {RELABEL_DIR} — not regenerating "
+    print(f"Sheet already exists at {RELABEL_DIR} - not regenerating "
           f"(redrawing after seeing results would invalidate it)")
 
 # A browsable copy with the images embedded. The CSV records paths from the
@@ -917,7 +917,7 @@ except Exception as e:
 # %%
 try:
     from budget import report as budget_report, print_report
-    # Merge every attached notebook's budget log — one per inference notebook.
+    # Merge every attached notebook's budget log - one per inference notebook.
     _buds = find_all_files("gpu_budget.json")
     if _buds:
         _merged, _seen = {"stages": []}, set()
@@ -990,7 +990,7 @@ def _clean(o):
 summary = _clean({
     "rung_data": rung_data,
     "rung_detail": rung_detail,
-    # best_layers is the sweep maximum — kept for the figure and for the
+    # best_layers is the sweep maximum - kept for the figure and for the
     # record, explicitly NOT the reported R4. probe_r4 is what the paper quotes.
     "best_layers_sweep_max_biased": {
         k: {"layer": int(v[0]), "acc": float(v[1]), "std": float(v[2])}
@@ -1044,7 +1044,7 @@ written, skipped = 0, []
 with zipfile.ZipFile(BUNDLE, "w", zipfile.ZIP_DEFLATED) as z:
     for label, root in [("figures", FIG_DIR), ("relabel", RELABEL_DIR)]:
         if not os.path.isdir(root):
-            print(f"  {label}/ not present — skipped")
+            print(f"  {label}/ not present - skipped")
             continue
         for dirpath, _dirnames, files in os.walk(root):
             for fn in sorted(files):

@@ -13,10 +13,10 @@ failures are in `NB2_NB3_ANALYSIS.md`. NB4 has not yet run on the real outputs.
 | Layer | State |
 |---|---|
 | Dataset generator, all six states + controls | verified against a COCO-format fixture, 139 items, every invariant held |
-| Analysis path — consistency, P1/P2 verdict, ladder, stats, figures, QA sheets, threats table | verified end to end on those items |
+| Analysis path - consistency, P1/P2 verdict, ladder, stats, figures, QA sheets, threats table | verified end to end on those items |
 | Both test suites | pass, Windows and Linux, no flags |
 | Inference path (`load`, `letter_ids`, `build_inputs`, `score_one`, hidden-state capture) | **statically checked and contract-tested, never run against a real checkpoint** |
-| Steering (`probe/steer.py`) | importable, fixed, nothing calls it — gated on E4 landing by 20 Aug |
+| Steering (`probe/steer.py`) | importable, fixed, nothing calls it - gated on E4 landing by 20 Aug |
 
 So: ready to *start*, not proven. Step 2 below is the ten-minute check that
 decides whether NB3 will run at all, and it is worth doing before anything
@@ -52,7 +52,7 @@ Neither needs a GPU or the COCO download. Under a minute together.
 cd evid6 && python tests/smoke_test.py
 ```
 
-Expect `ALL CHECKS PASSED` and 24 sections. Two are negative controls — section
+Expect `ALL CHECKS PASSED` and 24 sections. Two are negative controls - section
 12 feeds a world where P2 is false and asserts the verdict says "challenged",
 section 23 strips metadata and asserts the threats table says FAILED.
 
@@ -97,7 +97,7 @@ incompatibility, not a transient warning.
 Rung 3 is *entirely* the softmax over `letter_ids()`. Those ids come from
 encoding a bare `"A"` with no preceding context. After a chat template the
 assistant turn starts at a line boundary, so the bare token is probably right
-for Qwen and SmolVLM — but a mismatch would silently score the wrong tokens
+for Qwen and SmolVLM - but a mismatch would silently score the wrong tokens
 rather than crash, which is the worst failure mode available.
 
 With a model loaded and one real item:
@@ -123,7 +123,7 @@ Attach as inputs:
 
 - `coco-2017-dataset` (the COCO val2017 images + annotations)
 - this repository, as a dataset named so that `evid6/` lands at
-  `/kaggle/input/evid6-code/evid6` — or edit `EVID6_SRC` in NB1's copy cell
+  `/kaggle/input/evid6-code/evid6` - or edit `EVID6_SRC` in NB1's copy cell
 
 Run NB1 at a pilot size first. Set `n_per_state=10` in the `build()` cell:
 
@@ -135,8 +135,8 @@ Then **open `qa/index.html` and actually look at every contact sheet.** This is
 the step no code can do for you. The fixture the tests use is coloured blobs;
 it proves the pipeline is structurally sound and that the interventions behave
 physically, but only real photographs will tell you whether an occluder landed
-absurdly, whether an S4 pair is genuinely ambiguous to a person, or — the one
-that matters most — whether **S3 at severity 3 reads as *present but
+absurdly, whether an S4 pair is genuinely ambiguous to a person, or - the one
+that matters most - whether **S3 at severity 3 reads as *present but
 unresolvable* rather than as deletion**. If it reads as deletion, S3 has
 collapsed into S2 and P1/P2 cannot separate. Raise `S3_TARGET_RES[3]` above 8px
 and rebuild.
@@ -147,25 +147,25 @@ attach NB1's output as a dataset input to NB2 and NB3.
 
 ---
 
-## 4. Kaggle: inference (NB2, NB3 — T4)
+## 4. Kaggle: inference (NB2, NB3 - T4)
 
 Run NB2 on the pilot first, read `print_report()` from `eval/budget.py`, and
 project the real budget before committing to the full sweep.
 
-Budget reality: NB2 is seven passes, not four. The plan's 1.5 h will not hold —
+Budget reality: NB2 is seven passes, not four. The plan's 1.5 h will not hold -
 assume ~3 h, and 6–7 GPU-hours total rather than 4. Still inside the 30 h week.
 If quota tightens, `full_passes(..., fewshot=False)` drops rung 2 for SmolVLM
 cleanly.
 
-Both notebooks load each model exactly once and thread it through every pass —
+Both notebooks load each model exactly once and thread it through every pass -
 they print `memory_allocated()` so drift is visible. Do not add a `load()` call
 inside a runner; two fp16 copies of a 3B model will not fit on a 15 GB T4.
 
 Every runner is resumable. Re-running skips items already in the results file,
 so a session timeout costs you the current item, not the pass.
 
-- NB2 — Qwen2.5-VL-3B: clean references, cause prompt + hidden states, rungs 1–2, abstain, repair
-- NB3 — InternVL3-2B and SmolVLM2-2.2B, same passes
+- NB2 - Qwen2.5-VL-3B: clean references, cause prompt + hidden states, rungs 1–2, abstain, repair
+- NB3 - InternVL3-2B and SmolVLM2-2.2B, same passes
 
 ---
 
@@ -195,17 +195,17 @@ Then export the blind relabel sheet and **start the 48-hour clock**.
 
 ## 6. What is left that no code can do
 
-**Tier B hand-sorting — 200 items.** `data/vizwiz.py` handles loading,
+**Tier B hand-sorting - 200 items.** `data/vizwiz.py` handles loading,
 stratified sampling and sheet export. VizWiz ships an `answerable` flag but not
 the *reason*, which is the label this paper needs. Do this while the relabel
 clock runs.
 
-**The blind self-relabel — 100 items.** The sheet exports from NB4. The 48-hour
+**The blind self-relabel - 100 items.** The sheet exports from NB4. The 48-hour
 cooling-off is enforced: `score_sheet` warns if you score it early.
 
 **Look at the real QA sheets.** See step 3.
 
-**Steering.** `probe/steer.py` is fixed and importable but nothing calls it —
+**Steering.** `probe/steer.py` is fixed and importable but nothing calls it -
 gated on E4 landing by 20 Aug. About an hour to wire into NB4. The layer path
 differs per architecture and needs one `print(model)` against a real checkpoint.
 
@@ -223,7 +223,7 @@ Four small ones, deliberately not fixed, none caught by a test. Full detail in
 - `stats.consistency_rate` duplicates `consistency.agree` with weaker matching;
   only the smoke test calls it
 - relaxed matching favours short answers, and degraded images plausibly elicit
-  shorter answers — `summarise_both` reporting both rules is the mitigation, not
+  shorter answers - `summarise_both` reporting both rules is the mitigation, not
   a fix
 
 ---
@@ -231,12 +231,12 @@ Four small ones, deliberately not fixed, none caught by a test. Full detail in
 ## 8. Order of operations
 
 1. Local: both test suites (step 1)
-2. InternVL3 load check + letter-token check (step 2) — no quota
+2. InternVL3 load check + letter-token check (step 2) - no quota
 3. NB1 at `n_per_state=10`, scan every QA sheet (step 3)
 4. Full NB1 build, check `build_stats.json`
 5. NB2 on the pilot, read `print_report()`, project the budget
 6. NB2 / NB3 full sweeps
-7. NB4 — consistency, ladder, P1/P2 verdict. Export the relabel sheet, start the 48 h clock
+7. NB4 - consistency, ladder, P1/P2 verdict. Export the relabel sheet, start the 48 h clock
 8. Tier B hand-sorting while the clock runs
 9. Steering, if E4 landed by 20 Aug
 10. Score the relabel sheet. Write.

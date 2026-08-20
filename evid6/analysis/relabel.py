@@ -38,9 +38,9 @@ def export_sheet(items, out_dir: str, n: int = 100, seed: int = 0,
     Parameters
     ----------
     items : list of Item or dict
-    out_dir : str — directory to write into
-    n : int — sample size
-    conditions : tuple — which conditions are eligible (main by default)
+    out_dir : str - directory to write into
+    n : int - sample size
+    conditions : tuple - which conditions are eligible (main by default)
 
     Returns
     -------
@@ -84,7 +84,7 @@ def export_html_sheet(out_dir: str, image_roots=(), max_px: int = 420):
     """Render the sheet as one self-contained HTML file you can label offline.
 
     The CSV records the image paths from the session that built the dataset
-    (``/kaggle/working/evid6/images/...``), which do not exist anywhere else —
+    (``/kaggle/working/evid6/images/...``), which do not exist anywhere else -
     so the CSV alone cannot be labelled. This embeds each image as a data URI,
     giving a single file that works on any machine with no image directory
     beside it.
@@ -134,7 +134,7 @@ def export_html_sheet(out_dir: str, image_roots=(), max_px: int = 420):
         )
 
     html = f"""<!doctype html><meta charset="utf-8">
-<title>EVID-6 blind relabel — {len(rows)} items</title>
+<title>EVID-6 blind relabel - {len(rows)} items</title>
 <style>
  body {{ font: 15px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 900px; }}
  section {{ border-bottom: 1px solid #ddd; padding: 1.2rem 0; }}
@@ -143,17 +143,17 @@ def export_html_sheet(out_dir: str, image_roots=(), max_px: int = 420):
  img {{ max-width: 100%; border: 1px solid #e5e5e5; }}
  ol {{ color: #333; }} code {{ background: #f4f4f4; padding: 0 .2em; }}
 </style>
-<h1>Blind relabel — {len(rows)} items</h1>
+<h1>Blind relabel - {len(rows)} items</h1>
 <p>For each row, decide which evidence state the image and question show, and
 type it into the <code>label</code> column of <code>relabel_sheet.csv</code>
 against the same row number. No state labels appear here.</p>
 <ol>
- <li><b>S0</b> answerable — the referent is visible and unambiguous</li>
- <li><b>S1</b> out of frame — it exists in the scene but is not in the crop</li>
- <li><b>S2</b> occluded — inside the frame, blocked by something in front</li>
- <li><b>S3</b> sub-resolution — visible and unblocked, but too small, blurred or dark</li>
- <li><b>S4</b> ambiguous — more than one object matches the description</li>
- <li><b>S5</b> false premise — the named thing is not in this scene at all</li>
+ <li><b>S0</b> answerable - the referent is visible and unambiguous</li>
+ <li><b>S1</b> out of frame - it exists in the scene but is not in the crop</li>
+ <li><b>S2</b> occluded - inside the frame, blocked by something in front</li>
+ <li><b>S3</b> sub-resolution - visible and unblocked, but too small, blurred or dark</li>
+ <li><b>S4</b> ambiguous - more than one object matches the description</li>
+ <li><b>S5</b> false premise - the named thing is not in this scene at all</li>
 </ol>
 <p><b>Do not open <code>relabel_key.json</code> until every row is filled in.</b></p>
 {''.join(parts)}"""
@@ -201,7 +201,7 @@ def score_sheet(out_dir: str, per_state_threshold: float = 0.6):
     if elapsed_h < key.get("cooling_off_hours", COOLING_OFF_HOURS):
         warnings.append(
             f"relabelled after only {elapsed_h:.1f} h, below the "
-            f"{key.get('cooling_off_hours')} h cooling-off period — "
+            f"{key.get('cooling_off_hours')} h cooling-off period - "
             f"agreement is inflated by recall, say so in the paper"
         )
 

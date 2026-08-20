@@ -1,4 +1,4 @@
-"""EVID-6 evaluation ladder — all four rungs on identical items.
+"""EVID-6 evaluation ladder - all four rungs on identical items.
 
 Rung 1: Zero-shot GENERATED answer, letter-parsed (deployed behaviour)
 Rung 2: Few-shot, 8 in-context examples drawn from training folds only
@@ -49,10 +49,10 @@ def probe_layer(H, y, folds, layer: int, C: float = 1.0):
     Parameters
     ----------
     H : np.ndarray, shape (N, n_layers+1, hidden_dim)
-    y : np.ndarray of int, shape (N,) — state indices
-    folds : np.ndarray of int, shape (N,) — fold assignments
+    y : np.ndarray of int, shape (N,) - state indices
+    folds : np.ndarray of int, shape (N,) - fold assignments
     layer : int
-    C : float — inverse regularization strength
+    C : float - inverse regularization strength
 
     Returns
     -------
@@ -102,7 +102,7 @@ def rung_from_generation(results: list, count_unparsed_as_wrong: bool = True):
 
     A reply that commits to no option is a real deployment failure, so by
     default it counts as incorrect.  The unparsed rate is returned alongside
-    the accuracy and belongs in the paper next to it — an accuracy computed
+    the accuracy and belongs in the paper next to it - an accuracy computed
     only over parseable replies is a different, flattering quantity.
 
     Returns
@@ -145,7 +145,7 @@ def rung1_zeroshot(results: list) -> dict:
 def rung2_fewshot(results: list) -> dict:
     """Rung 2: same, with an 8-example in-context prefix.
 
-    The prefix must be built from training-fold items only — see
+    The prefix must be built from training-fold items only - see
     ``prompts.build_fewshot_prefix``.
     """
     return rung_from_generation(results)
@@ -194,7 +194,7 @@ def best_layer(sweep_results: list) -> tuple:
     WARNING: the accuracy this returns is selected by ``max`` over every layer,
     using the same folds it was scored on, so it is optimistically biased.  On
     pure noise (N=900, 29 layers, 6 classes) the max over layers reads 19.4%
-    against a true 16.7% — +2.4 points of free accuracy.  Use this for the
+    against a true 16.7% - +2.4 points of free accuracy.  Use this for the
     layer-sweep FIGURE and for choosing which layer to plot.  Do NOT use it as
     the headline rung-4 number; use ``nested_probe`` for that.
     """
@@ -208,14 +208,14 @@ def nested_probe(H, y, folds, C: float = 1.0):
     (an inner leave-one-fold-out over the training data), pick the layer that
     wins there, then score that layer once on the held-out outer fold.  The
     test fold never participates in the choice, so the resulting accuracy is
-    the honest one — it is the number the R4 − R1 gap should be built from.
+    the honest one - it is the number the R4 − R1 gap should be built from.
 
     Returns
     -------
     dict with
         accuracy      : mean over outer folds (report this)
         std           : spread over outer folds
-        layers_chosen : the layer each outer fold selected — if these disagree
+        layers_chosen : the layer each outer fold selected - if these disagree
                         wildly, the "the probe reads it at layer k" story is
                         weaker than a single number suggests
         selection_bias: how much max-over-layers would have added, i.e. the

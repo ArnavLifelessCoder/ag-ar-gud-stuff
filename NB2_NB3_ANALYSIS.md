@@ -1,4 +1,4 @@
-# EVID-6 results — Qwen2.5-VL-3B, InternVL3-2B, SmolVLM2-2.2B
+# EVID-6 results - Qwen2.5-VL-3B, InternVL3-2B, SmolVLM2-2.2B
 
 Analysed 16 Aug 2026 from `vlm nb2 results/` (NB2), `results-nb3/` (NB3) and
 `vlm nb5 output/` (the completed NB4 analysis). The inference numbers were
@@ -8,8 +8,8 @@ display; the probe, CLIP, transfer and figure numbers come from NB4's own
 
 **Status: the pipeline has run end to end.** NB1 built 1,838 items from real
 COCO, NB2/NB3 scored them with three models (9.18 GPU-h), NB4 produced every
-figure and `summary.json`. One pre-registered criterion failed — reference
-stability — and that failure is reported in §3 rather than worked around.
+figure and `summary.json`. One pre-registered criterion failed - reference
+stability - and that failure is reported in §3 rather than worked around.
 
 ## What ran
 
@@ -33,14 +33,14 @@ non-finite rows, R3 reproduced at 19.9% exactly). **All three models therefore
 have a probe.**
 
 Total consumed is **9.82 GPU-h** across every run; the *reproduction* cost is
-~9.2 h, since `smolvlm_cause` genuinely ran twice — once behaviourally and once
+~9.2 h, since `smolvlm_cause` genuinely ran twice - once behaviourally and once
 with activations. Report one and footnote the other.
 
 ---
 
 ## 1. The headline: behaviour is weak, activations are not
 
-NB4 completed 16 Aug. R4 is the nested probe — each outer fold picks its layer
+NB4 completed 16 Aug. R4 is the nested probe - each outer fold picks its layer
 using only its training folds, so the number carries no selection bias.
 
 | Model | R1 zero-shot | R2 few-shot | R3 logit | **R4 probe** | **R1 → R4** |
@@ -57,7 +57,7 @@ SmolVLM2-2.2B **cannot do this task**. R3 is 19.9% against 16.7% chance, it
 never emits B, E or F, and 84% of its 900 main-condition predictions are a
 single option (D). By every behavioural measure it is at floor.
 
-A linear probe on its layer-17 activations reads the six states at **72.9%** —
+A linear probe on its layer-17 activations reads the six states at **72.9%** -
 statistically indistinguishable from Qwen's 73.0%, and 28.6 points above the
 CLIP control. Its R1→R4 gap of **+49.0** is the largest of the three.
 
@@ -65,7 +65,7 @@ This is a stronger claim than "models under-report what they represent". A
 model can **encode why it cannot see while being wholly unable to say so**:
 representation and reportability are dissociable, and the gap does not track
 capability. Had SmolVLM's probe also come in near chance, the honest reading
-would have been the opposite — that the representation simply tracks how good
+would have been the opposite - that the representation simply tracks how good
 the model is. It does not.
 
 Two caveats to state rather than smooth over: SmolVLM's fold variance is
@@ -74,7 +74,7 @@ scatter more (22/23/17/21/21). Quote the spread, not a layer index.
 
 Selection bias was small and is reported rather than absorbed: max-over-layers
 would have read 74.6% for Qwen (+1.6) and 79.6% for InternVL (+0.4). Layers
-chosen per fold were 24/21/27/33/23 (Qwen) and 21/21/21/19/20 (InternVL) — say
+chosen per fold were 24/21/27/33/23 (Qwen) and 21/21/21/19/20 (InternVL) - say
 that InternVL localises tightly and Qwen does not, rather than quoting one
 layer index for both.
 
@@ -86,7 +86,7 @@ probe on frozen CLIP ViT-B/32 image features reaches 44.3%. So:
   which is the obvious reviewer objection. The pre-registered kill criterion
   (CLIP ≥ VLM probe → drop absolute numbers) does **not** fire.
 - CLIP at 44.3% is well above chance, so some evidence state is visible in
-  generic image statistics — occlusion, blur and cropping are, after all,
+  generic image statistics - occlusion, blur and cropping are, after all,
   visually detectable. Say this; it is not a weakness.
 - **CLIP also beats what Qwen actually reports** (44.3% vs R1 41.0%). A frozen
   encoder with a linear head outperforms the VLM's own answer. That is the
@@ -111,7 +111,7 @@ Worst groups were `tv` (58.3%) and `chair` (53.8%, 50.0%).
 ### The representation does not transfer across models
 
 In a shared PCA space, within-model accuracy is 65.4% (Qwen) and 71.9%
-(InternVL), but cross-model is **17.6%** and **20.8%** against 16.7% chance —
+(InternVL), but cross-model is **17.6%** and **20.8%** against 16.7% chance -
 a 47.8-point gap. Whatever encodes evidence state is real and linearly
 decodable inside each model, and is *not* a shared direction between them.
 Report this as a negative result, not an omission.
@@ -148,7 +148,7 @@ predictions. Ambiguous reference is not represented in the output distribution
 of any of these models under this prompt. Report the zero column; do not
 average it away.
 
-**S1 (out of frame) is equally dead** — 1.3%, 0.0%, 0.0%. Qwen emits B fifteen
+**S1 (out of frame) is equally dead** - 1.3%, 0.0%, 0.0%. Qwen emits B fifteen
 times; the other two never do.
 
 **SmolVLM's 86.7% on S3 is an artifact, not a result.** It answers D for 753 of
@@ -188,7 +188,7 @@ Strict matching (the headline rule) on the surviving subsets:
 | S3 curve, sev 1→2→3 | 81.0 → 52.2 → 34.8 | 91.7 → 45.5 → **53.8** | 70.0 → 55.6 → 31.6 |
 | Max strict-vs-relaxed delta | 7.5% | 8.3% | 6.2% |
 
-**P1 is "supported" for all three** — S2 sits at its prior-only floor, which is
+**P1 is "supported" for all three** - S2 sits at its prior-only floor, which is
 what the taxonomy predicts if occlusion destroys the signal. But note this is
 *supported by a null*: S2 main and its floor are both low and close, which is
 also what you would see if the reference were simply noisy. With drop rates
@@ -196,7 +196,7 @@ this high, that reading cannot be excluded.
 
 **P2 is "challenged" for all three.** Every model's severity-3 consistency
 reaches or falls below its S3 prior floor. InternVL is additionally
-non-monotone (91.7 → 45.5 → 53.8), on n = 12 / 11 / 13 per severity — too few
+non-monotone (91.7 → 45.5 → 53.8), on n = 12 / 11 / 13 per severity - too few
 items to interpret as anything but noise.
 
 The strict-vs-relaxed delta exceeds the 5-point threshold for all three, so the
@@ -225,7 +225,7 @@ Per-state abstention rate:
 It refuses 45.7% of genuinely answerable S0 items and 44.7% of S4. Qwen and
 SmolVLM sit at the opposite extreme, answering ~57% of items where the evidence
 is absent. Neither profile is calibrated uncertainty; they are opposite priors.
-Reporting AbsAcc alone would rank InternVL best and would be misleading — which
+Reporting AbsAcc alone would rank InternVL best and would be misleading - which
 is exactly why `abstain.py` returns OverAbs and UnderAbs beside it.
 
 ---
@@ -240,14 +240,14 @@ Accuracy on the 900 main rows:
 | InternVL | 19.9% | 0.7% | 8.7% | 11.3% | 73.3% | 25.3% | 0.0% |
 | SmolVLM | 17.6% | 95.3% | 10.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 
-Each model concentrates on one or two repair actions and ignores the rest —
+Each model concentrates on one or two repair actions and ignores the rest -
 Qwen on "zoom in" and "correct the premise", SmolVLM almost entirely on
 "answer". Diagnostic, not a repair-policy result.
 
 *(An earlier draft reported Qwen repair as 20.0%. That was computed over all
 1,838 rows while the per-state figures beside it used the 900 main rows. The
 1,838-row population is also wrong for this metric: `s0ctrl`, `prioronly` and
-`clean_ref` rows inherit a state label whose correct repair is undefined — a
+`clean_ref` rows inherit a state label whose correct repair is undefined - a
 prior-only row labelled S2 has the referent painted out, so "move to another
 angle" cannot fix it.)*
 
@@ -258,7 +258,7 @@ angle" cannot fix it.)*
 The Qwen activation export has 19 paired shards totalling 1,838 rows × 37
 layers × 2,048 dims. **Eight rows (0.44%) contain NaN in every layer above
 layer 0, and their forced-choice probabilities are NaN too.** All eight were
-saved with prediction `A`, because `argmax` over NaN returns index 0 — so those
+saved with prediction `A`, because `argmax` over NaN returns index 0 - so those
 R3 labels are artifacts, not predictions.
 
 | State / condition | Rows |
@@ -274,7 +274,7 @@ Item IDs: `6224ea5e7870`, `a271d8393673`, `1bb4bc7fc30f`, `be3af9bacf15`,
 Five of the eight are main-condition rows, so they survive NB4's alignment step
 and reach the probe. Before the fix this raised
 `ValueError: Input X contains NaN` partway through the layer sweep. NB4 now
-filters non-finite rows, prints their IDs, and continues — the exclusion must
+filters non-finite rows, prints their IDs, and continues - the exclusion must
 be reported.
 
 **InternVL and SmolVLM have zero NaN rows.** This is Qwen-specific.
@@ -298,7 +298,7 @@ Keep both downloaded folders unchanged for auditability.
 abstention, and repair never touch the reference. The R1→R4 gap is unaffected
 by the reference failure.
 
-**What does:** `clean_ref` + `treat` only — 28% of each sweep, **2.55 GPU-hours
+**What does:** `clean_ref` + `treat` only - 28% of each sweep, **2.55 GPU-hours
 across all three models**, not the full 9.18. Use a constrained clean-answer
 task (the plan suggests closed-set colour questions) so the drop rate can meet
 35%.
@@ -311,7 +311,7 @@ task (the plan suggests closed-set colour questions) so the drop rate can meet
 ### The run worth doing
 
 Rerun `smolvlm_cause` with `cache_hidden=True` (~0.62 GPU-h). SmolVLM is at
-**chance behaviourally** — 19.9%, three dead option letters, 84% of predictions
+**chance behaviourally** - 19.9%, three dead option letters, 84% of predictions
 on a single option. If a linear probe on its activations still separates the
 six states, that is the strongest possible form of this paper's thesis: a model
 that encodes *why it cannot see* while being completely unable to report it.
@@ -322,9 +322,9 @@ Right now that cannot be tested, because no activations were saved.
 ## 8. Remaining work, in order
 
 1. ~~Run NB4~~ **done 16 Aug.** Took 6.5 h on Kaggle CPU, not the 1.5 h
-   estimated — the nested probe alone was 3.7 h for Qwen. Results above.
+   estimated - the nested probe alone was 3.7 h for Qwen. Results above.
    `figures/probe_cache.json` now lets a rerun skip it in ~10 min.
-2. **Add a finite-value guard to `score_one`** — log the item ID and retry once
+2. **Add a finite-value guard to `score_one`** - log the item ID and retry once
    rather than writing an `A` prediction over NaN logits.
 3. **Rerun `clean` + `treat`** under new tags with a constrained answer task,
    then recompute consistency. 2.55 GPU-h.
@@ -344,4 +344,4 @@ architectures), and few-shot prompting does not close that gap.
 
 **Do not claim:** a P1/P2 verdict, calibrated abstention, or a repair policy.
 Report the reference-stability failure as a finding about free-form reference
-tasks — it is an honest negative, not a hole.
+tasks - it is an honest negative, not a hole.

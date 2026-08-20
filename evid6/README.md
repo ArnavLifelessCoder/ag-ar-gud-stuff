@@ -46,7 +46,7 @@ together they take under a minute. If either fails, do not spend quota.
 pip install pycocotools scikit-image && python tests/smoke_test.py && python tests/test_pipeline_e2e.py
 ```
 
-`smoke_test.py` exercises the entire CPU path on synthetic activations —
+`smoke_test.py` exercises the entire CPU path on synthetic activations -
 24 sections, two of which are negative controls. `test_pipeline_e2e.py` builds a
 synthetic COCO fixture, runs the real `build()` driver against it, and pushes
 the result through the whole analysis path to the P1/P2 verdict.
@@ -63,7 +63,7 @@ Both suites run on Windows as well as Linux.
 | NB4 | CPU | Ladder, probes, learning curve, CLIP baseline, consistency, abstention, transfer, stats, figures. |
 
 CPU notebooks do not consume the weekly GPU quota. Save Version after every
-successful GPU run, even a partial one — the runners resume from a partial
+successful GPU run, even a partial one - the runners resume from a partial
 `results.jsonl`.
 
 ## The two things most likely to break
@@ -78,7 +78,7 @@ the dose depend on referent size: at factor 24 a 63x63 object became 2x2,
 which is deletion, so S3 collapsed into S2 at the small end while a 346x346
 object got a mild blur. S3 also reduces contrast and luminance, because
 downsampling alone preserves mean colour to within CIEDE2000 dE < 0.25 and
-"What colour is the X?" is in every question pool — the intervention was
+"What colour is the X?" is in every question pool - the intervention was
 removing nothing the question depended on. `eff_res` is recorded as a
 continuous regressor alongside the ordinal severity.
 
@@ -97,8 +97,8 @@ Every consistency figure is computed under **both** strict and relaxed answer
 matching, and both are reported whenever they differ by more than 5 points.
 The matching rule is an evaluation choice, not a fact about the model.
 
-- **S0 consistency** is the ceiling — the noise floor of the measure itself.
-- **prior-only consistency** is the floor — how often the model reproduces its
+- **S0 consistency** is the ceiling - the noise floor of the measure itself.
+- **prior-only consistency** is the floor - how often the model reproduces its
   answer with the referent painted out, i.e. how often it was never using the
   evidence.
 - The gap between them, as a function of dose, is the result.
@@ -116,7 +116,7 @@ triptychs showing reference / intervention / control / floor side by side.
 
 Every acceptance check in the generator is a proxy. Coverage fractions and
 colour distances cannot tell you the occluder landed somewhere absurd, or that
-S3 severity 3 reads as deletion rather than degradation — which would collapse
+S3 severity 3 reads as deletion rather than degradation - which would collapse
 S3 into S2 and make P1 and P2 impossible to separate. Two minutes of looking
 beats finding it after a GPU sweep.
 

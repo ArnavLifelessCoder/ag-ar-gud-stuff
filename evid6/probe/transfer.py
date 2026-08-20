@@ -4,7 +4,7 @@ Two questions the reviewer will ask about any probe result:
 
   1. Does the probe generalize across models?  Train on model A's residual
      stream, test on model B's.  Only meaningful when the two share items,
-     and only possible after a linear map between hidden spaces — different
+     and only possible after a linear map between hidden spaces - different
      models have different widths, so we align by fitting the probe in a
      shared low-dimensional space (PCA) rather than pretending the axes match.
 
@@ -48,7 +48,7 @@ def align_and_transfer(HA, IA, HB, IB, y_by_item, layer_a, layer_b,
     HA, HB : np.ndarray, (N, L+1, D) per model
     IA, IB : np.ndarray of item_id strings, aligned with HA / HB
     y_by_item : dict item_id -> int state index
-    layer_a, layer_b : int — usually each model's own best layer
+    layer_a, layer_b : int - usually each model's own best layer
 
     Returns
     -------

@@ -1,12 +1,12 @@
 # EVID-6 smoke test report
 
-Generated 2026-08-18 20:47, Python 3.12.8,
+Generated 2026-08-20 13:12, Python 3.12.8,
 numpy 2.4.6.
 
-The offline test exercises the entire CPU path — schema, fold leakage guard,
+The offline test exercises the entire CPU path - schema, fold leakage guard,
 metadata passthrough, probes, learning curve, consistency scoring, abstention,
 ladder rungs 1-2, exact pairing, transfer, relabel harness, budget logging,
-every figure, the Tier B loader, and the image generators — on synthetic data.
+every figure, the Tier B loader, and the image generators - on synthetic data.
 No GPU and no COCO download required.
 
 **All 24 sections passed.**

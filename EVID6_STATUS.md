@@ -5,7 +5,7 @@ what is still open. §1.13 is the newest work: a full read-through of the
 repository on 6 Aug that found five defects both test suites were passing
 through.
 
-**The plan is now `evid6_plan_v4.md`.** v3 has been moved to `_to_delete/` — it
+**The plan is now `evid6_plan_v4.md`.** v3 has been moved to `_to_delete/` - it
 embedded full source listings that had diverged from the code, and keeping two
 disagreeing versions of `gen_S3` around during the write-up was a liability.
 v4 keeps only the excerpts that carry a design decision and states that the
@@ -22,7 +22,7 @@ checks pass.
 ~6,400 lines across 30 Python files. Everything compiles. Two test suites pass:
 `smoke_test.py` (24 sections, unit level) and `test_pipeline_e2e.py` (integration,
 generator driver through to the P1/P2 verdict). No module is stubbed. Both now
-run on Windows as well as Kaggle — see §1.13.
+run on Windows as well as Kaggle - see §1.13.
 
 ---
 
@@ -31,7 +31,7 @@ run on Windows as well as Kaggle — see §1.13.
 | File | What it is |
 |---|---|
 | `evid6_plan_v4.md` | **the plan.** Design, budget, timeline, kill criteria |
-| `EVID6_STATUS.md` | this file — what is done, left, and at risk |
+| `EVID6_STATUS.md` | this file - what is done, left, and at risk |
 | `EVID6_readiness_review.md` | the original code review, now mostly history |
 | `KAGGLE_RUNBOOK.md` | **copy-paste Kaggle cells**, in order, with the pre-quota checks |
 | `RUNBOOK.md` | the same run, described rather than pasted; local setup + what is left |
@@ -48,16 +48,16 @@ run on Windows as well as Kaggle — see §1.13.
 |---|---|---|
 | `plt` used one line before its import | `nb/NB1_build.py` | import moved above first use |
 | `.total_mem` (attribute is `total_memory`) | `nb/NB2`, `nb/NB3` | corrected; failed in the first cell |
-| `f"{clip_acc:.1%:>8}"` — invalid chained format spec | `nb/NB4` | formatted to a variable, then padded |
-| `from eval.run_inference import ...` — wrong path | `probe/steer.py` | imports `run_inference` directly |
-| `multi_class="multinomial"` — removed in sklearn 1.7 | `ladder.py`, `clip_baseline.py` | argument dropped; it is the default now |
+| `f"{clip_acc:.1%:>8}"` - invalid chained format spec | `nb/NB4` | formatted to a variable, then padded |
+| `from eval.run_inference import ...` - wrong path | `probe/steer.py` | imports `run_inference` directly |
+| `multi_class="multinomial"` - removed in sklearn 1.7 | `ladder.py`, `clip_baseline.py` | argument dropped; it is the default now |
 
 All five were reproduced as real failures before patching, not assumed.
 
 ### 1.2 Kaggle environment
 
 **Two models resident on one T4.** NB2 held a live model while `run()` loaded its
-own second copy — two Qwen-3B fp16 copies plus activations on a 15 GB card. All
+own second copy - two Qwen-3B fp16 copies plus activations on a 15 GB card. All
 runners now accept `proc`/`model`/`keep_loaded`; NB2/NB3 load each model exactly
 once and thread it through every pass, printing `memory_allocated()` so drift is
 visible.
@@ -77,7 +77,7 @@ Fixed via `run_inference.base_row()`. The absence is now loud: NB4 errors
 explicitly if S3 rows arrive without severity, and `fig_dose_response` drops
 metadata-less items rather than plotting them at zero.
 
-### 1.4 Self-consistency — the metric v3 is built on
+### 1.4 Self-consistency - the metric v3 is built on
 
 Previously existed only as a docstring. `build()` emitted no `clean_ref` items,
 `ref_answer` was never populated, and `consistency_rate()` was never called and
@@ -107,7 +107,7 @@ folds 1–4, evaluated on fold 0 only.
 ### 1.6 Two scientific fixes with teeth
 
 **S0-ctrl artifact mismatch.** `gen_s0ctrl` always pasted an occluder, so an S3
-item's control was "blur on target, paste elsewhere" — two different
+item's control was "blur on target, paste elsewhere" - two different
 manipulations compared. It now takes an `artifact` argument and shares the exact
 transform function with `gen_S3`.
 
@@ -129,7 +129,7 @@ arbitrary. `pair_main_vs_control()` pairs on `parent_item_id`.
 | `eval/budget.py` | per-stage GPU-hour logging, survives Save Version |
 | `figures.py` | +`fig_consistency`, +`fig_abstain` |
 | `tests/` | `smoke_test.py`, `test_pipeline_e2e.py`, `make_fake_coco.py` |
-| `README.md`, `requirements.txt` | — |
+| `README.md`, `requirements.txt` | - |
 
 ### 1.8 From the independent review
 
@@ -151,11 +151,11 @@ rather than corroboration. Four concrete asks were actionable and are done:
 Still writing tasks, not code: the taxonomy-framing sentence, the reviewer
 questions, and dialling back emphasis on codebase size.
 
-### 1.9 Validation run — 5 Aug
+### 1.9 Validation run - 5 Aug
 
 COCO and HuggingFace are blocked in the sandbox (PyPI only), so instead: a
 COCO-format fixture, and the **real `build()` driver** run against it. 434 lines
-that had never executed. 139 items, all six states filled, every invariant held —
+that had never executed. 139 items, all six states filled, every invariant held -
 one `clean_ref` per group, controls matching their parent artifact, S2 coverage
 0.948–1.000, S4 ΔE ≥ 19.8, S5 categories absent, no fold leakage, deterministic
 across re-runs. Then the full analysis path on those real items: references →
@@ -170,18 +170,18 @@ removed the information the questions depend on.
 Recorded in full in `evid6_plan_v4.md` §4.2, including the before/after
 measurement tables.
 
-**Problem 1 — severity was confounded with referent size.** Fixed division
+**Problem 1 - severity was confounded with referent size.** Fixed division
 factors {6, 12, 24} meant the dose depended on how big the object was:
 
 | referent | sev 1 | sev 2 | sev 3 |
 |---|---|---|---|
-| 63×63 (MIN_AREA) | 10×10 | 5×5 | **2×2 — deletion** |
-| 346×346 (MAX_AREA) | 57×57 | 28×28 | 14×14 — mild blur |
+| 63×63 (MIN_AREA) | 10×10 | 5×5 | **2×2 - deletion** |
+| 346×346 (MAX_AREA) | 57×57 | 28×28 | 14×14 - mild blur |
 
-Severity 3 was deletion at the small end, collapsing S3 into S2 — precisely the
+Severity 3 was deletion at the small end, collapsing S3 into S2 - precisely the
 failure that makes P1 and P2 inseparable.
 
-**Problem 2 — S3 did not remove colour, and colour is what the questions ask.**
+**Problem 2 - S3 did not remove colour, and colour is what the questions ask.**
 Mean-colour drift inside the mask, before vs after:
 
 | texture | sev 1 | sev 2 | sev 3 |
@@ -198,7 +198,7 @@ preserves.
 **Fixes applied.** Severity now targets an absolute effective resolution
 (32/16/8 px on the longer side), so it means the same thing for every object,
 and `eff_res` is recorded as a continuous regressor alongside the ordinal label.
-S3 also reduces contrast and luminance — which the state text always promised
+S3 also reduces contrast and luminance - which the state text always promised
 ("too small, blurred **or dark**") and the generator never implemented.
 
 Re-measured after the fix:
@@ -235,7 +235,7 @@ Rejection counts persisted to `build_stats.json`. Dead branch removed from
 `accuracy_by_state`. Chance line appears in the ladder legend. Figures no longer
 crash on a bare filename. All four notebooks converted to `.ipynb`.
 
-### 1.13 Code review — 6 Aug
+### 1.13 Code review - 6 Aug
 
 A read-through of every module, with both suites re-run locally. Five defects,
 all of which the tests were **passing through** rather than catching. Each fix
@@ -245,7 +245,7 @@ ships with the assertion that would have caught it.
 `random` module instead of the build's seeded `rng`. Two `build(seed=0)` calls
 in one process assigned different questions to **38 of 68 items**. The
 determinism test missed it because it compared `item_id` only, and `uid()` does
-not hash the question — so every id matched while the stimulus moved
+not hash the question - so every id matched while the stimulus moved
 underneath. `question_for(cat, rng)` now requires the rng and raises if it is
 omitted; the e2e check compares the full row and asserts the question map is
 stable.
@@ -253,7 +253,7 @@ stable.
 **`parse_letter` read the article "A" as option A.** The pattern
 `^\s*\(?([A-F])\)?\b` matched `"A cat is sitting on the bed"` and returned `A`.
 Option A is S0, so every prose reply opening with an article scored as a correct
-S0 prediction on rungs 1 and 2 — the two rungs the R1→R4 gap is measured from,
+S0 prediction on rungs 1 and 2 - the two rungs the R1→R4 gap is measured from,
 concentrated in exactly the state most likely to draw a prose answer. A bare
 letter must now be followed by punctuation, a bracket, or end of string, and the
 short-reply fallback matches standalone letters only and refuses to return A at
@@ -271,19 +271,19 @@ holds only phrases that cannot open a real answer; whole-answer non-answers
 
 **R4 was selected by `max` over the layer sweep, on the folds it was scored
 on.** On pure noise (N=900, 29 layers, 6 classes) that reads **19.4% against a
-true 16.7%** — +2.4 points for free, on the paper's headline gap. `ladder.py`
+true 16.7%** - +2.4 points for free, on the paper's headline gap. `ladder.py`
 gains `nested_probe`: each outer fold picks its layer using only the training
 folds, then scores that layer once on the held-out fold. NB4 reports it as R4,
 prints the max-over-layers number beside it as the bias avoided, flags folds
 that disagree on the layer, and omits R4 rather than falling back to the biased
 figure. `best_layer` is kept for the sweep figure with a warning in its
-docstring, and the CLIP kill criterion now compares against the nested number —
+docstring, and the CLIP kill criterion now compares against the nested number -
 comparing an inflated probe to an honest baseline would let that criterion pass
 on bias alone. `summary.json` records both under explicit names.
 
 **S3 could land at 7px effective resolution.** `_degrade_region` truncated with
 `int()`, and `target/longer` is a float, so `longer * scale` lands on 7.99999…
-for many sizes — a 166px referent at severity 3 came out at 7. Below the 8px
+for many sizes - a 166px referent at severity 3 came out at 7. Below the 8px
 line is where S3 collapses into S2, which is the one failure the absolute-
 resolution scheme exists to prevent. Rounds now. This was latent before 6 Aug;
 the rng fix above shifted the draw and surfaced it, and the "min 8px" printout
@@ -293,13 +293,13 @@ had been rounding it out of sight.
 locale `smoke_test.py` mis-decoded `run_inference.py` and died at section 4.
 All text opens are explicit UTF-8 now; both suites run clean on Windows without
 `PYTHONUTF8=1`. Local runs also need `pip install pycocotools scikit-image`,
-which were missing — on this machine that upgraded numpy to 2.4.6 and pillow to
+which were missing - on this machine that upgraded numpy to 2.4.6 and pillow to
 12.2.0, and everything passes under those versions.
 
 All four `.ipynb` files were regenerated from their `.py` twins and verified
 identical on code cells.
 
-### 1.14 The NB1→NB2 image-path break — 6 Aug
+### 1.14 The NB1→NB2 image-path break - 6 Aug
 
 Found while verifying the Kaggle runbook, not by either suite.
 
@@ -307,7 +307,7 @@ NB1 records **absolute** image paths from its own session
 (`/kaggle/working/evid6/images/…`). In NB2 and NB3 those images arrive as an
 attached dataset under a different root, and `run_inference.build_inputs` opens
 `item["image_path"]` verbatim. Every forward pass would have died on the first
-item — *after* the model had loaded, so it would have cost a session start and
+item - *after* the model had loaded, so it would have cost a session start and
 looked like a model problem. NB4 already remapped paths for the CLIP baseline;
 the two inference notebooks had no equivalent.
 
@@ -325,12 +325,12 @@ every path, preserves item order, and raises when nothing resolves.
 `KAGGLE_RUNBOOK.md` in the project root has the copy-paste cells, verified by
 cloning the pushed repo and replicating Kaggle's `sys.path` layout.
 
-### 1.15 transformers 5.x — the auto-class rename
+### 1.15 transformers 5.x - the auto-class rename
 
 Hit on the first real Kaggle run, in NB1's test cell of all places.
 
 Current Kaggle images ship **transformers 5.x**, where `AutoModelForVision2Seq`
-no longer exists — it was renamed `AutoModelForImageTextToText` around 4.45 and
+no longer exists - it was renamed `AutoModelForImageTextToText` around 4.45 and
 the old alias is gone in 5. `run_inference` imported the old name at module
 level, so the import failed before any model was touched.
 
@@ -341,13 +341,13 @@ class the installed transformers has, preferring the new name, and handles the
 matching `torch_dtype` → `dtype` keyword rename with a `TypeError` fallback.
 Verified both ways: against the real 4.41 here (resolves `Vision2Seq`) and
 against a stub presenting only the 5.x surface (resolves `ImageTextToText`).
-`env_report()` prints what actually resolved — call it once before a sweep.
+`env_report()` prints what actually resolved - call it once before a sweep.
 
 **A CPU-only test had a GPU dependency.** The §1.14 e2e check imported
 `rebase_items` from `run_inference`, which drags in torch and transformers at
 module level. That is what turned a transformers rename into a failure of the
-*dataset* test. `rebase_items` now lives in `data/schema.py` — which its own
-docstring already promised was dependency-free — and `run_inference` re-exports
+*dataset* test. `rebase_items` now lives in `data/schema.py` - which its own
+docstring already promised was dependency-free - and `run_inference` re-exports
 it so NB2/NB3 are unchanged.
 
 Both suites now pass with transformers **entirely absent**, verified by running
@@ -357,14 +357,14 @@ suites were supposed to have all along.
 **Do not pin transformers on Kaggle.** The code adapts; pinning would just move
 the breakage.
 
-### 1.17 S5 was irreproducible across sessions — 6 Aug
+### 1.17 S5 was irreproducible across sessions - 6 Aug
 
 Found by asking a much smaller question: does the pilot build leave anything
 behind? It does, and chasing the leftover files exposed the cause.
 
 `build()` picked the false-premise category with
 `rng.choice(list(ALL_CAT_NAMES - present))`. That iterates a **set of strings**,
-whose order depends on `PYTHONHASHSEED` — randomised per process. So
+whose order depends on `PYTHONHASHSEED` - randomised per process. So
 `build(seed=0)` chose different absent categories in every new session, giving
 different S5 item ids, different questions, different images. **A sixth of the
 benchmark was not reproducible**, and re-running NB1 in a fresh Kaggle session
@@ -377,7 +377,7 @@ give byte-identical output.
 
 The e2e test now re-runs `build()` in **subprocesses under two different hash
 seeds** and compares the full signature. Verified to fail when the `sorted()` is
-reverted — it is a real guard, not a decorative one.
+reverted - it is a real guard, not a decorative one.
 
 Same class as the `question_for` global-RNG bug in §1.13: an ordering dependency
 that a same-process test structurally cannot see.
@@ -390,7 +390,7 @@ dataset and break the "manifest and directory agree both ways" invariant.
 `build()` now warns and takes `prune_orphans=True`; the runbook clears the
 directory between pilot and full build.
 
-### 1.16 COCO layout autodetection — 6 Aug
+### 1.16 COCO layout autodetection - 6 Aug
 
 `ROOT` was hard-coded to one Kaggle COCO dataset's layout
 (`<ds>/coco2017/annotations/…`). Kaggle hosts several and they disagree: some
@@ -398,7 +398,7 @@ put `annotations/` at the dataset root, some put images under `images/val2017`.
 A mismatch surfaced as a `FileNotFoundError` raised inside `pycocotools`, naming
 the path the code wanted rather than the path that exists.
 
-Worse, `init_coco(root=X)` set only where annotations were read from —
+Worse, `init_coco(root=X)` set only where annotations were read from -
 **`IMG_DIR` kept its module-level default**. So pointing it at a non-default
 layout loaded the annotations successfully and then failed on every image, far
 from the cause. The e2e test never caught it because it set `g.IMG_DIR` by hand.
@@ -416,11 +416,11 @@ awkward layout, so the two globals cannot drift apart again.
 
 ### 2.1 Needs you, not code
 
-**Tier B hand-sorting — 200 items.** `vizwiz.py` handles loading, sampling and
+**Tier B hand-sorting - 200 items.** `vizwiz.py` handles loading, sampling and
 sheet export. VizWiz ships an `answerable` flag but not the *reason*, which is
 the label this paper needs. No code can produce it.
 
-**The blind self-relabel — 100 items.** The sheet exports from NB4 already. The
+**The blind self-relabel - 100 items.** The sheet exports from NB4 already. The
 48-hour cooling-off is real; `score_sheet` warns if you score it early.
 
 **Look at real images.** The fixture is coloured blobs. It proves the pipeline is
@@ -430,7 +430,7 @@ ambiguous to a person. QA sheets are wired into NB1 for exactly this.
 
 ### 2.2 Gated by your own plan
 
-**Steering.** `steer.py` is fixed and importable but nothing calls it — gated on
+**Steering.** `steer.py` is fixed and importable but nothing calls it - gated on
 E4 landing by 20 Aug. About an hour to wire into NB4. The layer path differs per
 architecture and needs one `print(model)` against a real checkpoint.
 
@@ -442,7 +442,7 @@ Freeze 22 Aug, submit 29 Aug.
 
 ## 3. Open issues and risks
 
-### 3.1 Unverified — check before spending quota
+### 3.1 Unverified - check before spending quota
 
 **InternVL3-2B through `AutoProcessor` + `AutoModelForVision2Seq` +
 `apply_chat_template`.** Cannot be tested without a GPU, and HuggingFace is
@@ -450,7 +450,7 @@ blocked here so it could not be tested at all. InternVL historically requires it
 own `model.chat()` path with explicit `pixel_values` and dynamic tiling. **The
 most likely reason NB3 dies.** Ten-minute test, two hours of quota at stake.
 
-**~~No model has ever run.~~ Resolved 16 Aug — all three have.** NB2 (Qwen,
+**~~No model has ever run.~~ Resolved 16 Aug - all three have.** NB2 (Qwen,
 1.19 GPU-h) and NB3 (InternVL3-2B-hf and SmolVLM2-2.2B, 7.99 GPU-h) both
 completed every pass over the full 1,838-row manifest. The inference path is
 no longer merely contract-tested. See `NB2_NB3_ANALYSIS.md` for the results and
@@ -460,7 +460,7 @@ breaching its 35% gate on all three models).
 **Option-letter token ids are resolved from a bare `"A"`.** `letter_ids` encodes
 the letter with no preceding context and asserts it round-trips. After a chat
 template the assistant turn starts at a line boundary, so the bare token is
-probably the right one for Qwen and SmolVLM — but rung 3 is *entirely* the
+probably the right one for Qwen and SmolVLM - but rung 3 is *entirely* the
 softmax over those ids, so a mismatch would silently score the wrong tokens
 rather than crash. On the pilot, check that the unconstrained full-vocab argmax
 at the answer position falls inside `opt_ids`. Two lines, and it validates the
@@ -468,7 +468,7 @@ whole of rung 3.
 
 ### 3.2 Budget
 
-NB2 is seven passes now, not four. The plan's 1.5 h will not hold — assume ~3 h.
+NB2 is seven passes now, not four. The plan's 1.5 h will not hold - assume ~3 h.
 Total likely 6–7 GPU-hours rather than 4, still inside the 30 h week. Check
 `print_report()` after the pilot. `full_passes(..., fewshot=False)` drops rung 2
 for SmolVLM cleanly if quota tightens.
@@ -476,7 +476,7 @@ for SmolVLM cleanly if quota tightens.
 ### 3.3 Judgment calls that move the numbers
 
 **Relaxed answer matching.** Now computed both ways automatically, so this is
-handled — but read the delta before writing the abstract.
+handled - but read the delta before writing the abstract.
 
 **S3 contrast/luminance reduction** attenuates colour by ΔE 8–23. That is a
 design choice, defensible because the state text specifies "or dark", but it does
@@ -498,7 +498,7 @@ sentence in the appendix.
 pre-6 Aug run of NB4 carries roughly 2–3 points of layer-selection inflation and
 must be regenerated, not adjusted. The R1→R4 gap is the headline, so this moves
 the headline. `summary.json` keeps the old max-over-layers value under
-`best_layers_sweep_max_biased` for the record — do not quote it.
+`best_layers_sweep_max_biased` for the record - do not quote it.
 
 **If the folds disagree on the best layer, say so.** NB4 prints
 `layers_chosen`. A single "the probe reads it at layer k" sentence is only
@@ -508,19 +508,19 @@ honest when the five outer folds actually agreed.
 
 - `clip_baseline.py` imports torch, so NB4 needs it despite being a CPU notebook.
   Kaggle CPU images ship torch; only matters if you run NB4 locally.
-- The S0 ceiling may come in lower than expected — greedy decoding drifts on
+- The S0 ceiling may come in lower than expected - greedy decoding drifts on
   identical inputs. That is a property of the measure, and reporting it *is* the
   honest move.
 - `MIN_AREA = 4000` was what made the old severity 3 lethal. It is fine now that
   severity is size-independent, but that is why the old ladder failed.
 
-Not fixed on 6 Aug, deliberately — small, but they are real and none of them is
+Not fixed on 6 Aug, deliberately - small, but they are real and none of them is
 caught by a test:
 
 - **`p1_p2_verdict` scores missing data as support.** `above = s3_floor is None
   or ...`, so absent prior-only rows make P2 "supported". A falsifiability claim
   should report *unknown* when the floor is missing, not pass by default.
-- **`gen_S4` compares `labs[0]` against `labs[1]`** — annotation list order, not
+- **`gen_S4` compares `labs[0]` against `labs[1]`** - annotation list order, not
   the two largest instances, despite the docstring saying "top-2". The ΔE ≥ 12
   gate is therefore applied to an arbitrary pair when an image has three.
 - **`stats.consistency_rate` duplicates `consistency.agree`** with weaker
@@ -528,7 +528,7 @@ caught by a test:
   deleting before someone wires it into NB4 by mistake.
 - **Relaxed matching favours short answers.** `set(short).issubset(set(long_))`
   means any one-token answer agreeing on a single word counts as consistent, and
-  degraded images plausibly elicit shorter answers — so the matching rule and
+  degraded images plausibly elicit shorter answers - so the matching rule and
   the dose are not fully independent. `summarise_both` reports the strict number
   beside it, which is the mitigation, but read the delta before writing.
 
@@ -540,7 +540,7 @@ support; S4 selects its two largest masks; the weak duplicate helper was
 removed; and strict matching is the default headline, with relaxed matching
 retained only as a sensitivity analysis.
 
-### 1.18 Pipeline complete — 16 Aug
+### 1.18 Pipeline complete - 16 Aug
 
 All four notebooks have run on real COCO with three models, 9.82 GPU-hours
 consumed (~9.2 h to reproduce). Full results in `NB2_NB3_ANALYSIS.md`.
@@ -554,7 +554,7 @@ The headline, and the reason the paper has a claim:
 | SmolVLM2-2.2B | 23.9% | **72.9%** | **+49.0** |
 
 CLIP ViT-B/32 control 44.3%; chance 16.7%. SmolVLM is at chance behaviourally
-yet its activations separate the states as well as Qwen's — representation and
+yet its activations separate the states as well as Qwen's - representation and
 reportability dissociate, and the gap does not track capability.
 
 One pre-registered criterion **failed**: clean-reference stability (58.8 / 78.7
@@ -567,13 +567,13 @@ provisional and reported as a criterion failure rather than a result.
    time (§3.1). (10 min, prevents a 2 h loss)
 2. `python tests/smoke_test.py` and `python tests/test_pipeline_e2e.py`.
    Locally these need `pip install pycocotools scikit-image`.
-3. NB1 at `n_per_state=10`, open `qa/index.html`, scan every sheet — especially
+3. NB1 at `n_per_state=10`, open `qa/index.html`, scan every sheet - especially
    whether S3 severity 3 still reads as *present but unresolvable* on real
    photographs rather than as deletion.
 4. Full NB1 build, check `build_stats.json` rejection rates.
 5. NB2 on the pilot, read `print_report()`, project the real budget.
 6. NB2/NB3 full sweeps.
-7. NB4 — consistency, ladder, P1/P2 verdict. Export the relabel sheet, start the
+7. NB4 - consistency, ladder, P1/P2 verdict. Export the relabel sheet, start the
    48 h clock.
 8. Tier B hand-sorting while the clock runs.
 9. Steering, if E4 landed by 20 Aug.
@@ -595,5 +595,5 @@ check if you edit either side.
 
 `qa_validation_run/` in the project folder holds the six contact sheets, the
 triptych panel and `index.html` from the 5 Aug run. They are synthetic-fixture
-output, kept as a reference for what NB1 will produce on real COCO — useful for
+output, kept as a reference for what NB1 will produce on real COCO - useful for
 checking the layout is readable before you rely on it.

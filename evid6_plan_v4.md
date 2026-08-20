@@ -20,11 +20,11 @@ disagrees with the repo, the repo is right.
 
 | Change | Reason |
 |---|---|
-| **S3 severity targets an absolute resolution, not a division factor** | Fixed factors made the dose depend on referent size. At factor 24 a 63×63 object became 2×2 — deletion, so S3 collapsed into S2 at the small end while large objects got a mild blur |
+| **S3 severity targets an absolute resolution, not a division factor** | Fixed factors made the dose depend on referent size. At factor 24 a 63×63 object became 2×2 - deletion, so S3 collapsed into S2 at the small end while large objects got a mild blur |
 | **S3 also reduces contrast and luminance** | Downsampling preserves mean colour to within ΔE 0.25, and "What colour is the X?" is in every question pool. The intervention was removing nothing the question depended on. The state text already promised "or dark" |
 | **`eff_res` added as a continuous dose regressor** | Severity is now an ordinal label over a measurable quantity, so dose-response can be fitted rather than binned |
 | **Reference groups made explicit** | v3 described self-consistency but had no mechanism. `ref_group` links every derived item to exactly one `clean_ref` item on the untouched image |
-| **S0-ctrl carries its parent's artifact** | v3 always pasted an occluder, so an S3 control was "blur on target, paste elsewhere" — two different manipulations being compared |
+| **S0-ctrl carries its parent's artifact** | v3 always pasted an occluder, so an S3 control was "blur on target, paste elsewhere" - two different manipulations being compared |
 | **Rungs 1 and 2 answer by generation** | v3's `rung1_from_text` read the option-token argmax, making R1 a duplicate of R3. The R1↔R4 gap is the paper's headline and was not being measured |
 | **Paired tests pair on `parent_item_id`** | Pairing on `base_image_id` was arbitrary, since one image yields several main items |
 | **Every result row carries its intervention metadata** | Without it the dose-response analysis silently produced a flat line that looked plausible |
@@ -48,7 +48,7 @@ does not have to be reconstructed from a deleted document.
 - **Forced choice scored from option-token logits in a single forward pass**,
   not generation. Roughly 5× cheaper than generating, and it yields rung 3 and
   rung 4 from the same pass, which is what makes their comparison exactly
-  paired. (v4 adds a *separate* generation pass for rungs 1 and 2 — that is
+  paired. (v4 adds a *separate* generation pass for rungs 1 and 2 - that is
   deployed behaviour and genuinely does need generating.)
 - **S4 verified by CIEDE2000 colour distance** between candidate masks, making
   ambiguity machine-verifiable rather than assumed.
@@ -76,7 +76,7 @@ Unchanged from v3, and all still true:
   outputs, attach that notebook's output as a dataset input to the next.
 - **CPU notebooks do not touch the GPU quota.**
 
-**Revised budget.** NB2 now runs seven passes, not four — clean references,
+**Revised budget.** NB2 now runs seven passes, not four - clean references,
 treatment answers, cause prompt with hidden states, rung 1, rung 2, abstain,
 repair.
 
@@ -119,7 +119,7 @@ removed and there is nothing to be consistent with.
 Two further consequences worth stating, both from v3:
 
 - The **prior-only floor becomes directly interpretable**. Agreement at the
-  floor is the rate at which the model was answering from priors all along —
+  floor is the rate at which the model was answering from priors all along -
   a quantity ground-truth scoring cannot give you.
 - There is **no annotator disagreement to report**, because there are no
   annotators. That removes a whole class of reviewer question.
@@ -131,8 +131,8 @@ the S0 ceiling quoted as evidence that the reference is not noise.
 **And one thing the reference still owes the reader.** Self-consistency says
 nothing about whether the clean-image answers were *correct*. Take a 100-item
 blind sample of the clean references, check them by hand, and report the rate
-in one sentence — "on a 100-item blind check the clean-image answers were
-correct at rate X" — so the pseudo-ground-truth is shown not to be garbage.
+in one sentence - "on a 100-item blind check the clean-image answers were
+correct at rate X" - so the pseudo-ground-truth is shown not to be garbage.
 This is cheap, it is not automated anywhere in the repo, and without it the
 whole measurement rests on an unexamined assumption.
 
@@ -151,10 +151,10 @@ whole measurement rests on an unexamined assumption.
 
 Plus two auxiliary conditions on S2/S3 items:
 
-- **S0-ctrl** — the *same artifact*, at the same area, on a region overlapping no
+- **S0-ctrl** - the *same artifact*, at the same area, on a region overlapping no
   instance of the queried category. Occluder for an S2 parent, degradation for an
   S3 parent. This is the control for artifact detection.
-- **prior-only** — the queried category's regions blanked to grey. This is the
+- **prior-only** - the queried category's regions blanked to grey. This is the
   floor.
 
 **P1 / P2 remain the taxonomy's falsifiable content.** Occlusion destroys signal,
@@ -163,7 +163,7 @@ Degradation attenuates signal, so S3 should decline monotonically with severity
 and stay above the floor until the referent is unresolvable. If the curves
 coincide, report five states. `consistency.p1_p2_verdict()` scores both.
 
-Note S3 is now a **compound** intervention — resolution, blur, contrast and
+Note S3 is now a **compound** intervention - resolution, blur, contrast and
 luminance together. That is what the state text always described ("too small,
 blurred or dark to make out"), but it means S3 is not a purely spatial
 manipulation and the paper should say so.
@@ -172,7 +172,7 @@ manipulation and the paper should say so.
 
 ## 3. Data
 
-**Tier A — COCO `val2017`** (~1 GB, 5,000 images) plus
+**Tier A - COCO `val2017`** (~1 GB, 5,000 images) plus
 `annotations_trainval2017` for instance masks. Both free Kaggle datasets.
 
 Questions are attribute questions about a named category, so no answer
@@ -192,12 +192,12 @@ One question is drawn per (image, category) and reused across every state from
 that image. Good for pairing; it does mean question type is confounded with base
 image, which is worth a sentence in the appendix.
 
-**Tier B — VizWiz**, 200 hand-sorted items. VizWiz ships an `answerable` flag
+**Tier B - VizWiz**, 200 hand-sorted items. VizWiz ships an `answerable` flag
 but not the *reason*, which is the label this paper needs, so this cannot be
 automated. `data/vizwiz.py` handles loading, stratified sampling (75%
 unanswerable, since that is where S1–S5 live) and sheet export; you fill in the
 state column. Tier B items carry negative `base_image_id` so they cannot
-collide with COCO groups, and no intervention metadata — nothing was done to
+collide with COCO groups, and no intervention metadata - nothing was done to
 these images, the failure was already there. They are used for the ladder and
 the probe's cross-domain test, not for dose-response.
 
@@ -249,7 +249,7 @@ ref_answer: Optional[str] = None
 ref_group: Optional[str] = None       # all items sharing one clean reference
 parent_item_id: Optional[str] = None  # for s0ctrl/prioronly: the main item
 artifact: Optional[str] = None        # occlude | degrade | blank | None
-# Intervention metadata — the dose-response regressors
+# Intervention metadata - the dose-response regressors
 occl_frac: Optional[float] = None
 inst_pixels: Optional[int] = None
 severity: Optional[int] = None
@@ -265,7 +265,7 @@ has `condition == "clean_ref"` and points at the untouched image.
 ### 4.2 `data/generate.py`
 
 Unchanged in design from v3: real-object occluders from other images (never
-black boxes — that is the reviewer's favourite attack), machine-verifiable
+black boxes - that is the reviewer's favourite attack), machine-verifiable
 acceptance thresholds, every rejection counted.
 
 **What changed is S3.** v3 used fixed division factors `{1: 6, 2: 12, 3: 24}`.
@@ -275,11 +275,11 @@ Two things were wrong, both found by measuring output rather than reading code:
 
 | referent | factor 6 | factor 12 | factor 24 |
 |---|---|---|---|
-| 63×63 (MIN_AREA) | 10×10 | 5×5 | **2×2 — deletion** |
-| 346×346 (MAX_AREA) | 57×57 | 28×28 | 14×14 — mild blur |
+| 63×63 (MIN_AREA) | 10×10 | 5×5 | **2×2 - deletion** |
+| 346×346 (MAX_AREA) | 57×57 | 28×28 | 14×14 - mild blur |
 
 Severity 3 was deletion at the small end, which collapses S3 into S2 and makes
-P1 and P2 inseparable — the exact failure the taxonomy is supposed to be able to
+P1 and P2 inseparable - the exact failure the taxonomy is supposed to be able to
 detect.
 
 *Downsampling preserves colour.* Mean colour inside the mask, before vs after:
@@ -306,7 +306,7 @@ Severity now means the same thing for every object, and `_degrade_region()`
 returns the achieved resolution so `eff_res` can be used as a continuous
 regressor. It **rounds** rather than truncating: `target/longer` is a float, so
 `longer * scale` lands on 7.99999… for many sizes and `int()` floored a 166 px
-referent at severity 3 to 7 px — under the 8 px line, which is exactly the S3→S2
+referent at severity 3 to 7 px - under the 8 px line, which is exactly the S3→S2
 collapse this scheme exists to prevent (6 Aug). After the fix:
 
 | texture | sev 1 | sev 2 | sev 3 |
@@ -329,8 +329,8 @@ state/condition groups.
 table goes in the appendix and used to die with the Kaggle session.
 
 `question_for(cat, rng)` takes the build's seeded rng and raises without it. It
-used to draw from the global `random` module, which made the **question** — the
-experimental stimulus itself — irreproducible: two `build(seed=0)` calls
+used to draw from the global `random` module, which made the **question** - the
+experimental stimulus itself - irreproducible: two `build(seed=0)` calls
 assigned different questions to 38 of 68 items while every `item_id` matched,
 because `uid()` does not hash the question (6 Aug). The e2e determinism check
 now compares the full row, not just ids.
@@ -344,15 +344,15 @@ Unchanged. `StratifiedGroupKFold` stratified on state, grouped on
 
 The four prompts are unchanged. Added:
 
-- `parse_letter(text)` — handles `B`, `(C)`, `D.`, `The answer is: E`,
+- `parse_letter(text)` - handles `B`, `(C)`, `D.`, `The answer is: E`,
   `option F`. Returns `None` when the model commits to nothing, which is a real
   deployment failure and must not be coerced into a guess. A bare letter must be
   followed by punctuation, a bracket, or end of string: the earlier pattern
   matched the English article, so `"A cat is sitting on the bed"` parsed as
-  option A — and A is S0, so prose replies were scored as correct S0
+  option A - and A is S0, so prose replies were scored as correct S0
   predictions on the two rungs the headline gap is measured from (6 Aug).
 - `build_fewshot_prefix(examples, n=8)` and `balanced_examples()` for rung 2.
-  The exemplars are **text-only** — question plus gold letter, no exemplar
+  The exemplars are **text-only** - question plus gold letter, no exemplar
   images. Eight extra images per call does not fit on a T4 and most 2–3B VLMs
   are not trained for multi-image ICL. So rung 2 measures label-space and format
   priming, not multimodal in-context learning. Say this plainly; it is a weaker
@@ -367,13 +367,13 @@ Three runners, all sharing one contract: they accept an already-loaded
 ```python
 run(...)                    # forward pass: option-token logits + hidden states
 run_generation(...)         # free-form answers (clean refs, treatments, abstain)
-run_choice_generation(...)  # forced choice answered by generation — rungs 1 and 2
+run_choice_generation(...)  # forced choice answered by generation - rungs 1 and 2
 ```
 
 `base_row(item)` copies `category`, `occl_frac`, `inst_pixels`, `severity`,
 `eff_res`, `n_candidates`, `delta_e`, `ref_group`, `parent_item_id` and
 `artifact` into every result row. **Without this the dose-response analysis
-silently degenerates** — every item falls back to a default and the plot looks
+silently degenerates** - every item falls back to a default and the plot looks
 plausible. NB4 errors loudly if S3 rows arrive without severity, and
 `fig_dose_response` drops metadata-less items rather than plotting them at zero.
 
@@ -385,16 +385,16 @@ Load once per model, thread it through every pass.
 
 Four rungs on identical items:
 
-- **Rung 1** — `rung1_zeroshot()`, generated text, letter-parsed. Deployed
+- **Rung 1** - `rung1_zeroshot()`, generated text, letter-parsed. Deployed
   behaviour. Unparseable replies count as **incorrect**; the unparsed rate is
   returned alongside and belongs next to the accuracy in the paper. An accuracy
   computed over parseable replies only is a different, flattering number, and is
   reported separately as `accuracy_parsed_only`.
-- **Rung 2** — `rung2_fewshot()`, same with the 8-exemplar prefix, on the
+- **Rung 2** - `rung2_fewshot()`, same with the 8-exemplar prefix, on the
   held-out fold only, exemplars drawn from training folds.
-- **Rung 3** — `rung3_from_logits()`, option-token argmax from the same forward
+- **Rung 3** - `rung3_from_logits()`, option-token argmax from the same forward
   pass that produced the activations. This pairing is what makes R3↔R4 valid.
-- **Rung 4** — `nested_probe()`, cross-validated logistic regression on the
+- **Rung 4** - `nested_probe()`, cross-validated logistic regression on the
   residual stream with **the layer chosen inside the training folds**. Each
   outer fold sweeps the layers on the remaining folds only, picks the winner
   there, and scores it once on the held-out fold. `probe_layer()` /
@@ -404,7 +404,7 @@ Four rungs on identical items:
 
 The **R1↔R4 gap** is the headline. In v3 it was accidentally R3↔R4.
 Because R4 is now nested, it is a lower number than a pre-6 Aug NB4 run
-reported — regenerate those figures rather than adjusting them.
+reported - regenerate those figures rather than adjusting them.
 
 ### 4.7 `analysis/consistency.py`
 
@@ -417,7 +417,7 @@ p1_p2_verdict(scored, flat_tol=0.05)
 summarise_both(treat_results, refs, ref_stats)        # strict AND relaxed
 ```
 
-`agree()` defaults to relaxed matching — "red" agrees with "red and white",
+`agree()` defaults to relaxed matching - "red" agrees with "red and white",
 since the model is naming the same attribute. Refusals never agree with
 anything, including each other. Because the rule moves the headline numbers,
 `summarise_both()` scores everything both ways and reports the max delta; NB4
@@ -426,7 +426,7 @@ prints the strict breakdown automatically when the gap exceeds 5 points.
 `is_refusal()` matches `REFUSAL_MARKERS` as substrings, so every entry has to be
 a phrase that cannot open a real answer. A bare `"no "` was in that list and
 made `"no parking sign"`, `"no hat"` and `"No, it is a cat"` read as
-abstentions — deflating consistency and inflating the reference drop rate toward
+abstentions - deflating consistency and inflating the reference drop rate toward
 the 13 Aug kill criterion, with `"stop sign"` live in the `TEXTISH` question
 pool (6 Aug). Whole-answer non-answers (`"none"`, `"N/A"`, `"nothing"`) are
 matched exactly via `REFUSAL_EXACT` instead.
@@ -436,7 +436,7 @@ matched exactly via `REFUSAL_EXACT` instead.
 `AbsAcc`, `OverAbs`, `UnderAbs`, and the always-abstain baseline. A model that
 abstains on everything scores 5/6 on naive accuracy and is useless, so these
 only mean anything together. `artifact_sensitivity()` compares abstention on
-S0-ctrl (artifact present, referent visible) against clean S0 — a large gap
+S0-ctrl (artifact present, referent visible) against clean S0 - a large gap
 means abstention is partly artifact detection, which is a confound the paper has
 to name.
 
@@ -454,7 +454,7 @@ The shortcut defences, all mandatory:
   widths so a literal direction cannot carry over; this tests for common
   low-dimensional structure and should be labelled as the weaker claim it is.
 
-### 4.9b `probe/steer.py` — gated on 20 Aug
+### 4.9b `probe/steer.py` - gated on 20 Aug
 
 Difference-of-means direction (not-S0 minus S0) at one layer, injected at the
 last token through a forward hook. `attach()` tries the common block paths;
@@ -463,7 +463,7 @@ print the model once and confirm, because it differs per architecture.
 Sweep alpha over roughly `[-4, -2, -1, 0, 1, 2, 4]` and plot `AbsAcc` against
 `OverAbs`. **The result that matters is whether abstention rises faster than
 over-abstention.** If both rise together, the direction is a generic hedging
-knob rather than an evidence signal — which is itself worth one honest
+knob rather than an evidence signal - which is itself worth one honest
 paragraph, not a discarded experiment.
 
 Nothing in NB4 calls this yet; it is gated on E4 landing cleanly by 20 Aug.
@@ -471,7 +471,7 @@ Nothing in NB4 calls this yet; it is gated on E4 landing cleanly by 20 Aug.
 ### 4.10 `analysis/stats.py`
 
 `boot_ci`, `paired_test` (McNemar), and two pairing helpers.
-`pair_main_vs_control()` pairs on `parent_item_id` — pairing on `base_image_id`
+`pair_main_vs_control()` pairs on `parent_item_id` - pairing on `base_image_id`
 is wrong because one image yields several main items, so the match becomes
 arbitrary.
 
@@ -520,7 +520,7 @@ referent falls below 8 px effective resolution. Every rejection is counted and
 the per-state rate goes in the appendix. Stronger than annotation for the states
 where the property is geometric.
 
-**2. Visual QA — new in v4, and it earned its place immediately.** Every check
+**2. Visual QA - new in v4, and it earned its place immediately.** Every check
 above is a proxy. Coverage fractions and colour distances cannot tell you the
 occluder landed absurdly, that an "ambiguous" pair is obviously distinguishable
 to a person, or that severity 3 reads as deletion. `qa_sheet.contact_sheets()`
@@ -547,7 +547,7 @@ analysis path (22 checks). Two of these are negative controls: a world where P2
 is false, which the verdict must report as "challenged", and stripped metadata,
 which the threats table must report as FAILED. A suite that only confirms
 success cannot catch a scoring function that always says yes. Both run in
-seconds without a GPU or the COCO download — run them before spending quota.
+seconds without a GPU or the COCO download - run them before spending quota.
 
 **Threats-eliminated table.** `analysis/threats.py` generates the appendix table
 from the run's own artifacts, verifying what can be verified (folds with
@@ -615,7 +615,7 @@ Carried from v3, plus what the implementation added:
 - [ ] Kaggle account phone-verified, internet enabled in notebook settings
 - [ ] COCO val2017 and annotations attached as free Kaggle datasets
 - [ ] `python tests/smoke_test.py` and `python tests/test_pipeline_e2e.py` pass
-- [ ] InternVL3 loads through `AutoModelForVision2Seq` — **test this first**, it
+- [ ] InternVL3 loads through `AutoModelForVision2Seq` - **test this first**, it
       is the highest technical risk in the project
 - [ ] All models ≤7B, fp16, `attn_implementation="sdpa"`, no bf16 anywhere
 - [ ] Pilot build inspected in the QA sheets before the full build
@@ -634,19 +634,19 @@ spent 400. Put the number in the abstract.
 
 ## 10. What the paper must state plainly
 
-Not limitations to bury — design facts a reviewer will find anyway:
+Not limitations to bury - design facts a reviewer will find anyway:
 
 1. **"Accuracy" is self-consistency** with model-specific pseudo-ground-truth,
    not correctness. The S0 ceiling is the measure's own noise floor.
-2. **S3 is a compound intervention** — resolution, blur, contrast and luminance.
+2. **S3 is a compound intervention** - resolution, blur, contrast and luminance.
    Purely spatial degradation preserves mean colour, which the questions depend
    on, so the compound was necessary. But it is compound.
 3. **Rung 2 uses text-only exemplars.** Label-space and format priming, not
    multimodal ICL.
 4. **Rung 1 counts unparseable replies as incorrect** and reports that rate.
-5. **Cross-model transfer is in a shared PCA space** — common low-dimensional
+5. **Cross-model transfer is in a shared PCA space** - common low-dimensional
    structure, not a shared direction.
-6. **Question type is confounded with base image** — one question per image,
+6. **Question type is confounded with base image** - one question per image,
    reused across states.
 7. **Validation is automatic, visual and intra-annotator.** No paid annotation,
    and inter-annotator agreement is on a small subset or absent.

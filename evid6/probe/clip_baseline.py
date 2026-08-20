@@ -2,7 +2,7 @@
 
 Mandatory sanity check: if a CLIP linear probe matches the VLM internal
 probe, the VLM probe is not learning anything beyond what the vision
-encoder already exposes — and the paper should rest on the rung 1 vs rung 4
+encoder already exposes - and the paper should rest on the rung 1 vs rung 4
 gap, not absolute probe numbers.
 
 Runs in week one on CPU.  CLIP ViT-B/32 is small enough.

@@ -30,7 +30,7 @@ OUT_DIR = "/kaggle/working/evid6/images"
 def find_coco(search_root: str = "/kaggle/input") -> tuple:
     """Locate ``instances_val2017.json`` and its image directory.
 
-    Kaggle hosts several COCO 2017 datasets and they do not share a layout —
+    Kaggle hosts several COCO 2017 datasets and they do not share a layout -
     some mount as ``<ds>/coco2017/annotations/…``, others as
     ``<ds>/annotations/…``.  Hard-coding one of them means a FileNotFoundError
     inside ``COCO()`` that names the path it wanted but not the path you have.
@@ -80,7 +80,7 @@ def init_coco(root=None, img_dir=None, search_root: str = "/kaggle/input"):
     Call with no arguments to auto-detect via :func:`find_coco`.
 
     ``root`` used to set only where annotations were read from, while
-    ``IMG_DIR`` stayed on its hard-coded default — so pointing this at a
+    ``IMG_DIR`` stayed on its hard-coded default - so pointing this at a
     non-default COCO layout loaded the annotations fine and then failed on
     every image, far from the cause.  Both globals are now set together.
     """
@@ -113,7 +113,7 @@ def init_coco(root=None, img_dir=None, search_root: str = "/kaggle/input"):
 
 # ── Constants ───────────────────────────────────────────────────────────────
 
-MIN_AREA = 4000       # px — referent must be big enough that S0 is genuinely answerable
+MIN_AREA = 4000       # px - referent must be big enough that S0 is genuinely answerable
 MAX_AREA = 120000     # keep the referent from dominating the frame
 
 PERSONISH = {"person", "dog", "cat", "horse", "bird", "sheep", "cow", "elephant"}
@@ -126,8 +126,8 @@ def question_for(cat: str, rng=None) -> str:
     """Pick a question template appropriate for the category.
 
     ``rng`` must be the build's seeded ``random.Random``.  It used to default
-    to the global ``random`` module, which made the question — the actual
-    experimental stimulus — irreproducible: two ``build(seed=0)`` calls in one
+    to the global ``random`` module, which made the question - the actual
+    experimental stimulus - irreproducible: two ``build(seed=0)`` calls in one
     process assigned different questions to 38 of 68 items while every
     ``item_id`` matched, because ``uid()`` does not hash the question. The
     determinism test compared ids only and so never saw it.
@@ -163,7 +163,7 @@ def save(img: Image.Image, name: str) -> str:
 def filename_for(state: str, condition: str, item_id: str) -> str:
     """Self-describing filename keyed on the item's OWN id.
 
-    ``{state}_{condition}_{item_id}`` — so a stray file in the images
+    ``{state}_{condition}_{item_id}`` - so a stray file in the images
     directory can be traced back to its manifest row without a lookup, and
     sorting the directory groups by state then condition. Earlier revisions
     named auxiliary images after their *parent's* id, which meant 42 of 139
@@ -213,12 +213,12 @@ def build_occluder_bank(n: int = 400, seed: int = 0) -> list:
 # ── Six state generators ───────────────────────────────────────────────────
 
 def gen_S0(img, *_args, **_kw):
-    """S0 — Answerable: return untouched image."""
+    """S0 - Answerable: return untouched image."""
     return img, {}
 
 
 def gen_S1(img, masks, **_kw):
-    """S1 — Out of frame: crop so every instance falls outside.
+    """S1 - Out of frame: crop so every instance falls outside.
 
     Picks the largest axis-aligned crop that excludes the union bounding box,
     subject to a minimum-size constraint (35% of each dimension).
@@ -243,7 +243,7 @@ def gen_S1(img, masks, **_kw):
 
 
 def gen_S2(img, masks, bank=None, seed=0, **_kw):
-    """S2 — Occluded: composite a real object over >=90% of every instance mask.
+    """S2 - Occluded: composite a real object over >=90% of every instance mask.
 
     Rejects items where realised coverage falls below 90%.
     """
@@ -268,7 +268,7 @@ def gen_S2(img, masks, bank=None, seed=0, **_kw):
         covered_den += m.sum()
     frac = covered_num / max(covered_den, 1)
     if frac < 0.90:
-        return None, None       # reject — do not silently ship under-occluded items
+        return None, None       # reject - do not silently ship under-occluded items
     return out, {"occl_frac": float(frac), "artifact": "occlude"}
 
 
@@ -278,7 +278,7 @@ def gen_S2(img, masks, bank=None, seed=0, **_kw):
 # found by measuring the generator's output rather than reading the code:
 #
 #   1. A fixed factor means severity is confounded with referent size. At
-#      factor 24 a 63x63 referent (MIN_AREA) becomes 2x2 — deletion, not
+#      factor 24 a 63x63 referent (MIN_AREA) becomes 2x2 - deletion, not
 #      degradation, which collapses S3 into S2 and makes P1/P2 inseparable.
 #      A 346x346 referent at the same factor becomes 14x14, a mild blur.
 #      We therefore target an absolute effective resolution instead, so
@@ -311,7 +311,7 @@ def _degrade_region(region: Image.Image, severity: int):
     # round, not truncate: target/longer is a float, so longer*scale lands on
     # 7.99999... instead of 8.0 for many sizes (a 166px referent at severity 3
     # gave 7). int() then floored it below the 8px line that keeps S3 from
-    # collapsing into S2 — the exact failure this severity scheme exists to
+    # collapsing into S2 - the exact failure this severity scheme exists to
     # prevent, and small enough to hide in a "min 8px" printout.
     sw = max(int(round(w * scale)), 2)
     sh = max(int(round(h * scale)), 2)
@@ -329,7 +329,7 @@ def _degrade_region(region: Image.Image, severity: int):
 
 
 def gen_S3(img, masks, severity=2, **_kw):
-    """S3 — Sub-resolution: degrade only the instance regions.
+    """S3 - Sub-resolution: degrade only the instance regions.
 
     Severity now controls an absolute target resolution rather than a
     division factor, so the dose is not confounded with referent size, and
@@ -355,7 +355,7 @@ def gen_S3(img, masks, severity=2, **_kw):
 
 
 def gen_S4(img, masks, **_kw):
-    """S4 — Ambiguous reference: >=2 instances, verified colour-distinct.
+    """S4 - Ambiguous reference: >=2 instances, verified colour-distinct.
 
     Rejects if CIEDE2000 colour distance between the two largest candidates is
     below 12, meaning they are too similar for the question to be genuinely
@@ -377,7 +377,7 @@ def gen_S4(img, masks, **_kw):
 
 
 def gen_S5(img, *_args, **_kw):
-    """S5 — False premise: image untouched, question names an absent class."""
+    """S5 - False premise: image untouched, question names an absent class."""
     return img, {}
 
 
@@ -450,7 +450,7 @@ def build(n_per_state: int = 150, seed: int = 0, prune_orphans: bool = False) ->
     """Build the full EVID-6 dataset.
 
     Returns a list of Item objects.  Rejection counts per state are printed
-    at the end — these go in the appendix.
+    at the end - these go in the appendix.
 
     Target: 150 items per state = 900 main items, plus ~300 S0-ctrl,
     ~300 prior-only and one clean_ref per reference group.
@@ -550,7 +550,7 @@ def build(n_per_state: int = 150, seed: int = 0, prune_orphans: bool = False) ->
                               ref_group=rgid))
             items.extend(group_items)
 
-        # S5: false premise — name a category that is absent from the image.
+        # S5: false premise - name a category that is absent from the image.
         # No clean reference: there is no evidence to remove, so consistency
         # is undefined here (see schema.CONSISTENCY_STATES).
         if need["S5"] > 0:
@@ -558,7 +558,7 @@ def build(n_per_state: int = 150, seed: int = 0, prune_orphans: bool = False) ->
             # PYTHONHASHSEED, which Python randomises per process. list() here
             # made rng.choice pick a different absent category in every new
             # session, so build(seed=0) produced entirely different S5 items
-            # run to run — a sixth of the benchmark, silently irreproducible.
+            # run to run - a sixth of the benchmark, silently irreproducible.
             # The e2e determinism check could not see it: it builds twice in
             # one process, where the hash seed is fixed.
             absent = sorted(ALL_CAT_NAMES - present)
@@ -580,7 +580,7 @@ def build(n_per_state: int = 150, seed: int = 0, prune_orphans: bool = False) ->
     # A pilot run at n_per_state=10 followed by the real build at 150 does not
     # leave a clean prefix: once a state's quota fills, the `continue` above
     # fires before the severity draw, so the rng stream diverges and later
-    # images pick different categories — hence different item ids, hence files
+    # images pick different categories - hence different item ids, hence files
     # on disk that no manifest row points at. Measured: 10 orphans from a
     # 10 -> 40 sequence. They would ship inside the NB1 output dataset and
     # break the "manifest and directory agree both ways" invariant.
@@ -602,7 +602,7 @@ def build(n_per_state: int = 150, seed: int = 0, prune_orphans: bool = False) ->
     except FileNotFoundError:
         pass
 
-    # Persist the rejection stats — this table goes in the appendix and is
+    # Persist the rejection stats - this table goes in the appendix and is
     # lost forever when the Kaggle session is wiped.
     try:
         stats_path = os.path.join(os.path.dirname(OUT_DIR), "build_stats.json")

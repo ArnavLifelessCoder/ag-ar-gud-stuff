@@ -1,6 +1,6 @@
 # %% [markdown]
-# # NB3: Inference — InternVL3-2B (Model B) + SmolVLM2-2.2B (Model C)
-# **Accelerator: T4 GPU** — ~2 hours of GPU quota.
+# # NB3: Inference - InternVL3-2B (Model B) + SmolVLM2-2.2B (Model C)
+# **Accelerator: T4 GPU** - ~2 hours of GPU quota.
 #
 # ## What this notebook does
 # 1. Runs InternVL3-2B: cause prompt with hidden states, abstain, repair
@@ -67,7 +67,7 @@ print(f"Rebased items: {ITEMS_PATH}")
 # CUSTOM config (InternVLChatConfig, loaded via trust_remote_code) that the
 # transformers Auto-classes cannot map. transformers 5.x has NATIVE InternVL
 # support (InternVLConfig / InternVLForConditionalGeneration), and the "-hf"
-# repo is the converted checkpoint that uses it — so AutoModelForImageTextToText
+# repo is the converted checkpoint that uses it - so AutoModelForImageTextToText
 # maps it and no custom loader is needed. Same model, HF-native packaging.
 MODEL_B_ID = "OpenGVLab/InternVL3-2B-hf"
 MODEL_B_TAG = "internvl"
@@ -216,7 +216,7 @@ print(f"Probs: {dict(zip('ABCDEF', [f'{p:.3f}' for p in probs]))}")
 print("Smoke test passed ✓")
 
 # %% [markdown]
-# ## C.3: Cause prompt (behavioural only — no hidden states to save quota)
+# ## C.3: Cause prompt (behavioural only - no hidden states to save quota)
 # If GPU quota allows, set `cache_hidden=True` for SmolVLM too.
 
 # %%

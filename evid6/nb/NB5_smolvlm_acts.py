@@ -1,13 +1,13 @@
 # %% [markdown]
 # # NB5: SmolVLM2 cause pass WITH hidden states
-# **Accelerator: GPU (T4 or P100)** — about 0.7 GPU-hours.
+# **Accelerator: GPU (T4 or P100)** - about 0.7 GPU-hours.
 #
 # ## Why this run exists
 # NB3 ran SmolVLM with `CACHE_SMOL_HIDDEN = False` to protect quota, so it has
 # behavioural results but no activations and therefore no rung-4 probe.
 #
 # That gap sits exactly on the paper's most interesting question. SmolVLM is at
-# **chance behaviourally** — R3 19.9% against 16.7%, and it answers option D on
+# **chance behaviourally** - R3 19.9% against 16.7%, and it answers option D on
 # 753 of 900 main items. Qwen and InternVL both *report* poorly (41.0%, 38.6%)
 # while their activations carry the state (73.0%, 79.2%). If SmolVLM turns out
 # to encode the states too, the claim strengthens from "models under-report what
@@ -62,8 +62,8 @@ print(f"Rebased items: {ITEMS_PATH}")
 # %% [markdown]
 # ## Load SmolVLM2 and verify the option tokens
 # Same tag as NB3 (`smolvlm_cause`) so NB4 picks this up as a drop-in. The
-# behavioural rows will match NB3's — the cause pass is a deterministic forward
-# pass — and the difference is that this run also writes `acts/smolvlm_cause/`.
+# behavioural rows will match NB3's - the cause pass is a deterministic forward
+# pass - and the difference is that this run also writes `acts/smolvlm_cause/`.
 
 # %%
 from run_inference import load, letter_ids, run, score_one
@@ -79,7 +79,7 @@ opt_ids = letter_ids(proc, n=6)
 print("Letter tokens verified ✓", opt_ids)
 
 # %% [markdown]
-# ## Smoke test — one item, WITH hidden states
+# ## Smoke test - one item, WITH hidden states
 # NB3's smoke test asked for `want_hidden=False`, so nothing checked the
 # hidden-state path for this model. Qwen's run produced eight rows of NaN
 # activations that were only discovered in NB4, long after the quota was spent.
@@ -121,7 +121,7 @@ print(f"GPU allocated after: {torch.cuda.memory_allocated() / 1e9:.1f} GB")
 
 # %% [markdown]
 # ## Verify what was written
-# Confirm the activations are complete and finite before the session ends —
+# Confirm the activations are complete and finite before the session ends -
 # this is the check whose absence cost Qwen eight unusable rows.
 
 # %%
@@ -154,7 +154,7 @@ main = [r for r in rows if r["condition"] == "main"]
 acc = np.mean([r["pred"] == chr(65 + STATES.index(r["state"])) for r in main])
 print(f"\nR3 on {len(main)} main rows: {acc:.1%}  (NB3 recorded 19.9%)")
 if abs(acc - 0.199) > 0.02:
-    print("  NOTE: differs from NB3 by more than 2 points — investigate before "
+    print("  NOTE: differs from NB3 by more than 2 points - investigate before "
           "treating the activations as matched to the existing behavioural rows.")
 
 # %% [markdown]
@@ -166,6 +166,6 @@ print_report()
 # %% [markdown]
 # ## Done
 # **Save Version.** Then attach this output to NB4 alongside NB1/NB2/NB3 and
-# the previous NB4 output — the cached Qwen and InternVL probes are reused, and
+# the previous NB4 output - the cached Qwen and InternVL probes are reused, and
 # only SmolVLM's probe is computed. NB4 will report a third R4 and a third row
 # in the ladder table.

@@ -5,10 +5,10 @@ model answer, or does it say CANNOT ANSWER?
 
 Two numbers matter, and reporting either alone is misleading:
 
-  AbsAcc   — how often the abstain/answer decision matches the ground state.
+  AbsAcc   - how often the abstain/answer decision matches the ground state.
              S0 (and the S0-ctrl control) should be answered; S1-S5 should be
              abstained on.
-  OverAbs  — how often the model abstains on an S0 item it could have
+  OverAbs  - how often the model abstains on an S0 item it could have
              answered.  A model that abstains on everything scores 5/6 on a
              naive accuracy and is useless.
 
@@ -146,7 +146,7 @@ def artifact_sensitivity(results: list) -> dict:
         "artifact_gap": gap,
         "interpretation": (
             None if gap is None else
-            "abstention tracks the artifact, not the missing evidence — "
+            "abstention tracks the artifact, not the missing evidence - "
             "confound, report it" if gap > 0.15 else
             "abstention is not driven by artifact detection"
         ),

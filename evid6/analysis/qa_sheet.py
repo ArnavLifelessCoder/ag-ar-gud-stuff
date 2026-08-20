@@ -1,7 +1,7 @@
 """EVID-6 visual QA contact sheets.
 
 Every geometric check in the generator is a proxy. S2 measures realised
-coverage, S4 measures a colour distance, S1 checks a bounding box — none of
+coverage, S4 measures a colour distance, S1 checks a bounding box - none of
 them can tell you the occluder landed somewhere absurd, or that the "ambiguous"
 pair is obviously distinguishable to a human, or that the referent was already
 unrecognisable before we touched it.
@@ -109,7 +109,7 @@ def contact_sheets(items, out_dir: str, per_state: int = 48, cols: int = 8,
         sample = rng.sample(pool, min(per_state, len(pool)))
         path = os.path.join(out_dir, f"qa_{st}.png")
         missing += _grid(sample, path,
-                         f"{st} — {len(sample)} of {len(pool)} items", cols=cols)
+                         f"{st} - {len(sample)} of {len(pool)} items", cols=cols)
         made.append((st, os.path.basename(path), len(sample), len(pool)))
         total += len(sample)
         print(f"  {st}: {len(sample)} shown of {len(pool)} -> {path}")
@@ -152,7 +152,7 @@ def triptychs(items, out_dir: str, n: int = 24, seed: int = 0):
     full = [g for g, d in by_group.items()
             if {"ref", "main", "po"} <= set(d)]
     if not full:
-        print("  no complete reference groups found — skipping triptychs")
+        print("  no complete reference groups found - skipping triptychs")
         return None
 
     picked = rng.sample(full, min(n, len(full)))
@@ -216,19 +216,19 @@ def _write_index(out_dir, made, total):
  img {{ width: 100%; height: auto; border: 1px solid #e5e5e5; }}
  ul {{ color: #444; }}
 </style>
-<h1>EVID-6 visual QA — {total} images</h1>
+<h1>EVID-6 visual QA - {total} images</h1>
 <p class="lead">Captions carry the numbers the generator used to accept each
 item. Scan for anything the geometry could not catch.</p>
 <ul>
-  <li><b>S1</b> — is every instance really outside the crop?</li>
-  <li><b>S2</b> — does the occluder sit on the referent, and does it look like
+  <li><b>S1</b> - is every instance really outside the crop?</li>
+  <li><b>S2</b> - does the occluder sit on the referent, and does it look like
       an object rather than a pasted rectangle? <code>cov</code> should be ≥ 0.90.</li>
-  <li><b>S3</b> — is the referent degraded but still clearly <i>there</i>?
+  <li><b>S3</b> - is the referent degraded but still clearly <i>there</i>?
       If severity 3 looks like deletion, S3 has collapsed into S2.</li>
-  <li><b>S4</b> — would a person actually be unsure which one is meant?
+  <li><b>S4</b> - would a person actually be unsure which one is meant?
       A high <code>dE</code> with obviously different objects is not ambiguity.</li>
-  <li><b>S5</b> — is the named category genuinely absent?</li>
-  <li><b>S0</b> — was it answerable in the first place?</li>
+  <li><b>S5</b> - is the named category genuinely absent?</li>
+  <li><b>S0</b> - was it answerable in the first place?</li>
 </ul>
 {rows}
 {extra}

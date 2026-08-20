@@ -45,7 +45,7 @@ REPAIR = {
 class Item:
     """One benchmark item: an image + question + evidence-state label.
 
-    Fields below ``ref_answer`` are intervention metadata — the regressors
+    Fields below ``ref_answer`` are intervention metadata - the regressors
     for the dose-response analysis.
     """
     item_id: str
@@ -86,7 +86,7 @@ class Item:
 # The plan's remedy is a closed answer set. Colour is the right choice: it is
 # answerable for essentially any object, it is what S4's CIEDE2000 gate already
 # certifies as distinguishing the ambiguous candidates, and it is what S3's
-# contrast/luminance reduction actually destroys — so the question probes the
+# contrast/luminance reduction actually destroys - so the question probes the
 # intervention rather than sitting beside it.
 CLOSED_COLOURS = ["black", "blue", "brown", "green", "grey", "orange",
                   "pink", "purple", "red", "white", "yellow"]
@@ -102,7 +102,7 @@ def make_closed_manifest(items_path: str, out_path: str = None) -> str:
 
     Consistency asks whether the model's answer to a *fixed* question survives
     an intervention. The question therefore need not be the one drawn at build
-    time — and using one question for every item both maximises usable n and
+    time - and using one question for every item both maximises usable n and
     removes question type as a confound between states.
 
     Only ``question`` changes. Item ids, states, conditions, reference groups
@@ -152,7 +152,7 @@ def find_items(search_roots=("/kaggle/input", "/kaggle/working")) -> str:
     """Locate ``items.jsonl`` wherever NB1's output got mounted.
 
     NB2/NB3/NB4 attach NB1's output as a dataset, and its mount path is the NB1
-    notebook's title slugified — which nobody can guarantee matches a hard-coded
+    notebook's title slugified - which nobody can guarantee matches a hard-coded
     guess. Rather than list three paths and assert, walk the input roots and
     find the file. Same approach as ``find_coco``.
 
@@ -186,7 +186,7 @@ def rebase_items(items_path: str, search_roots, out_path: str = None) -> str:
     NB1 records absolute paths from its own session
     (``/kaggle/working/evid6/images/...``).  In NB2/NB3 those images arrive as an
     attached dataset under a different root, so the recorded path does not
-    resolve and the first ``Image.open`` in ``build_inputs`` kills the pass —
+    resolve and the first ``Image.open`` in ``build_inputs`` kills the pass -
     on the first item, after the model has already loaded.  NB4 remaps for the
     CLIP baseline; the inference notebooks had no equivalent.
 
@@ -201,13 +201,13 @@ def rebase_items(items_path: str, search_roots, out_path: str = None) -> str:
         and ``<root>/evid6/images/<name>`` are tried.
     out_path : str, optional
         Where to write the rebased manifest.  Defaults to
-        ``/kaggle/working/items_local.jsonl`` — the NB1 manifest usually lives
+        ``/kaggle/working/items_local.jsonl`` - the NB1 manifest usually lives
         under a read-only ``/kaggle/input`` mount, so it cannot be rewritten
         in place.
 
     Returns
     -------
-    str — path to the rebased manifest.  Raises if nothing resolved at all,
+    str - path to the rebased manifest.  Raises if nothing resolved at all,
     since that means the wrong dataset is attached and every later number
     would be built on an empty run.
     """
@@ -244,14 +244,14 @@ def rebase_items(items_path: str, search_roots, out_path: str = None) -> str:
         for it in rows:
             f.write(json.dumps(it) + "\n")
 
-    print(f"rebase_items: {len(rows)} items — {n_ok} already valid, "
+    print(f"rebase_items: {len(rows)} items - {n_ok} already valid, "
           f"{n_moved} remapped, {len(missing)} unresolved")
     if missing:
         print(f"  first unresolved: {missing[0]}")
     if n_ok + n_moved == 0:
         raise FileNotFoundError(
             f"No image in {items_path} resolved under {roots}. The wrong "
-            f"dataset is attached — fix this before spending GPU quota."
+            f"dataset is attached - fix this before spending GPU quota."
         )
     if missing:
         raise FileNotFoundError(

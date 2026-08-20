@@ -5,7 +5,7 @@ injects it at inference time through a forward hook.
 
 The key result: does abstention rise faster than over-abstention?
 If both rise together, the direction is a generic hedging knob and not
-an evidence signal — worth one honest paragraph.
+an evidence signal - worth one honest paragraph.
 """
 
 import numpy as np
@@ -18,7 +18,7 @@ def insufficiency_direction(H, y, layer: int) -> torch.Tensor:
     Parameters
     ----------
     H : np.ndarray, shape (N, n_layers+1, hidden_dim)
-    y : np.ndarray of int, shape (N,) — state indices (0 = S0)
+    y : np.ndarray of int, shape (N,) - state indices (0 = S0)
     layer : int
 
     Returns

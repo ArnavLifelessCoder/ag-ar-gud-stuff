@@ -190,7 +190,7 @@ def build_table(items=None, folds=None, results=None, summary=None,
 
 def to_markdown(rows) -> str:
     """Render as the appendix table."""
-    mark = {True: "verified", False: "FAILED", None: "—"}
+    mark = {True: "verified", False: "FAILED", None: "-"}
     out = ["| Threat | Mechanism | Evidence | Status |",
            "|---|---|---|---|"]
     for r in rows:

@@ -66,7 +66,7 @@ REPAIR_PROMPT = (
 import re as _re
 
 # The leading-letter patterns must not fire on the English article "A".
-# `^\s*\(?([A-F])\)?\b` matched "A cat is sitting on the bed" and returned A —
+# `^\s*\(?([A-F])\)?\b` matched "A cat is sitting on the bed" and returned A -
 # and A is S0, so every prose reply beginning with an article was scored as a
 # correct S0 prediction. A bare letter therefore has to be followed by
 # punctuation, a bracket, or end of string; a letter followed by a lowercase
@@ -74,7 +74,7 @@ import re as _re
 _LETTER_PATTERNS = [
     _re.compile(r"^\s*\(?([A-F])\)?\s*[.):\-]?\s*$"),   # "B", "(B)", "B."
     _re.compile(r"^\s*\(([A-F])\)"),                    # "(B) the object is..."
-    _re.compile(r"^\s*([A-F])\s*[).:\-–—]\s"),          # "B) ...", "B: ...", "B - ..."
+    _re.compile(r"^\s*([A-F])\s*[).:\-–-]\s"),          # "B) ...", "B: ...", "B - ..."
     _re.compile(r"\banswer\s*(?:is)?\s*:?\s*\(?([A-F])\)?\b", _re.I),
     _re.compile(r"\boption\s*\(?([A-F])\)?\b", _re.I),
 ]
@@ -85,7 +85,7 @@ def parse_letter(text: str, n_options: int = 6):
 
     Returns the letter, or None if the model did not commit to one.  Rung 1
     is meant to measure deployed behaviour, so an unparseable reply is a
-    genuine failure and must NOT be silently coerced into a guess — count it
+    genuine failure and must NOT be silently coerced into a guess - count it
     as incorrect and report the unparsed rate alongside the accuracy.
     """
     if not text:
@@ -97,7 +97,7 @@ def parse_letter(text: str, n_options: int = 6):
         if m and m.group(1).upper() in valid:
             return m.group(1).upper()
     # Last resort: a short reply containing exactly one standalone valid
-    # letter.  Standalone matters — scanning raw characters made "off" parse
+    # letter.  Standalone matters - scanning raw characters made "off" parse
     # as F and "a dog" as A.
     if len(t) <= 40:
         found = {w.upper() for w in _re.findall(r"\b([A-Fa-f])\b", t)
@@ -105,7 +105,7 @@ def parse_letter(text: str, n_options: int = 6):
         # "A" is excluded here on purpose. A reply that is *only* the letter A
         # already matched pattern 1 above, so a standalone A reaching this
         # point is inside a longer reply, where it is the English article far
-        # more often than a choice — and A is S0, the state this would
+        # more often than a choice - and A is S0, the state this would
         # otherwise hand free credit to.
         found.discard("A")
         if len(found) == 1:
@@ -128,7 +128,7 @@ def build_fewshot_prefix(examples, n: int = 8):
     ----------
     examples : list of dict
         Items drawn ONLY from training folds.  Each needs 'question' and
-        'state'.  Caller is responsible for the fold discipline — passing
+        'state'.  Caller is responsible for the fold discipline - passing
         test-fold items here silently inflates rung 2.
     n : int
         Number of exemplars.
@@ -140,7 +140,7 @@ def build_fewshot_prefix(examples, n: int = 8):
     T4 and most 2-3B VLMs are not trained for multi-image ICL anyway.  So
     rung 2 measures whether *label-space and format priming* closes the gap,
     not whether visual demonstrations do.  State this explicitly in the paper
-    — it is a weaker claim than full multimodal ICL and should not be
+    - it is a weaker claim than full multimodal ICL and should not be
     reported as one.
     """
     lines = [FEWSHOT_HEADER]

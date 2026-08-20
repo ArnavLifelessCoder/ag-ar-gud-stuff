@@ -1,6 +1,6 @@
 # %% [markdown]
 # # NB1: Build EVID-6 Dataset
-# **Accelerator: CPU only** — does not consume GPU quota.
+# **Accelerator: CPU only** - does not consume GPU quota.
 #
 # ## What this notebook does
 # 1. Loads COCO val2017 images and annotations
@@ -74,7 +74,7 @@ for s in STATES:
 # %%
 from generate import init_coco, build_occluder_bank, OUT_DIR
 
-# Sets both the annotation path AND IMG_DIR — passing only a root used to leave
+# Sets both the annotation path AND IMG_DIR - passing only a root used to leave
 # IMG_DIR on its hard-coded default, which fails later on every image.
 coco = init_coco(root=COCO_ROOT, img_dir=COCO_IMG_DIR)
 print(f"COCO loaded: {len(coco.getImgIds())} images")
@@ -157,7 +157,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# ## Visual QA — look at the images before trusting the geometry
+# ## Visual QA - look at the images before trusting the geometry
 # Every acceptance check in the generator is a proxy. Coverage fractions and
 # colour distances cannot tell you the occluder landed somewhere absurd, or
 # that "ambiguous" candidates are obviously distinguishable to a person.
@@ -172,10 +172,10 @@ triptychs(items, QA_DIR, n=24, seed=0)
 
 print("\nOpen /kaggle/working/qa/index.html and scan every sheet.")
 print("Specifically check:")
-print("  S3 severity 3 — degraded but still THERE? If it reads as deletion,")
+print("  S3 severity 3 - degraded but still THERE? If it reads as deletion,")
 print("                  S3 has collapsed into S2 and P1/P2 cannot separate.")
-print("  S4            — would a person genuinely be unsure which is meant?")
-print("  S2            — does the occluder look like an object, not a box?")
+print("  S4            - would a person genuinely be unsure which is meant?")
+print("  S2            - does the occluder look like an object, not a box?")
 
 # %% [markdown]
 # ## Summary statistics for appendix

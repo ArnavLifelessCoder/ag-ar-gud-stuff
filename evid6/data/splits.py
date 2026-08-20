@@ -1,7 +1,7 @@
 """EVID-6 cross-validation splits with leakage guard.
 
 Every derived item from one COCO image must land in the same fold.
-This module asserts that invariant — it does not trust it.
+This module asserts that invariant - it does not trust it.
 """
 
 import numpy as np

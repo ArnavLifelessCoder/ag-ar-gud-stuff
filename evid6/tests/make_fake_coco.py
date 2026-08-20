@@ -2,8 +2,8 @@
 end to end without downloading 1 GB of val2017.
 
 This is NOT a substitute for looking at real images. It exists to exercise
-``generate.build()`` — the driver, the reference-group bookkeeping, the
-rejection accounting, the auxiliary conditions — which the unit-level smoke
+``generate.build()`` - the driver, the reference-group bookkeeping, the
+rejection accounting, the auxiliary conditions - which the unit-level smoke
 test never touches because it only calls the individual state generators.
 
 The images are crude: coloured blobs on textured backgrounds. That is enough
@@ -52,7 +52,7 @@ def build_fake_coco(out_dir: str, n_images: int = 160, seed: int = 0):
     for iid in range(1, n_images + 1):
         W, H = 640, 480
         # Textured background so downsampling and blurring have something
-        # to act on — a flat fill would make S3 a no-op.
+        # to act on - a flat fill would make S3 a no-op.
         bg = nprng.integers(60, 200, size=(H // 16, W // 16, 3), dtype=np.uint8)
         img = Image.fromarray(bg).resize((W, H), Image.BICUBIC)
         img = img.filter(ImageFilter.GaussianBlur(2))
