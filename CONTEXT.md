@@ -128,6 +128,63 @@ all three (p = 0.36 / 0.18 / 0.86).
 
 Provenance: `run_logs/nb7_closed_set_gate.log`; raw rows in `nb7 results/`.
 
+### Inter-annotator legibility (20 Aug): the taxonomy is only moderately reproducible
+
+A second annotator, who had never seen the data, labelled all 100 rows of
+`relabel_v2` from the blind HTML. This is **inter**-annotator agreement and has
+no cooling-off requirement, so it landed before the intra-annotator pass.
+
+**56/100 = 56.0%** [95% Wilson CI 46, 65], **Cohen's kappa 0.472**, against a
+16.7% chance floor. Above chance by a wide margin, moderate by any standard
+reading, and short of what a benchmark label needs.
+
+| State | recall | 95% CI | gold n | they said |
+|---|---:|---|---:|---:|
+| S0 | 64.3% | [39, 84] | 14 | 22 |
+| S1 | 46.7% | [25, 70] | 15 | 10 |
+| S2 | 35.0% | [18, 57] | 20 | 8 |
+| S3 | 60.0% | [36, 80] | 15 | 13 |
+| S4 | 50.0% | [29, 71] | 18 | 14 |
+| S5 | 83.3% | [61, 94] | 18 | 33 |
+
+**Two things stop this being read naively.**
+
+- **Response bias.** S5 was used 33 times against 18 in gold (1.8x), S2 eight
+  times against 20 (0.4x). S5's 83.3% is partly bought by over-applying it, the
+  same artifact as SmolVLM's S3 under a constant-D predictor. Do not quote S5 as
+  the state that works without saying this.
+- **n is 14 to 20 per state**, so every CI is roughly +/-20 points. S3 at 60.0%
+  sits exactly on the criterion line and S0 at 64.3% is not safely clear of it.
+  Read the intervals, not the point estimates.
+
+**The errors are structured, not noise.** Of 44 errors, 17 are S2 -> S5 (9) and
+S1 -> S5 (8): occluded and out-of-frame both read as "the thing is not there".
+Another 8 are S4 -> S0, the ambiguity going unnoticed. Merging S1/S2/S5 into a
+single "cannot see" class gives **75/100 on a 4-way task** (chance 25%). The
+coarse distinction is solid; the boundary *within* "cannot see" is what fails.
+
+**The consequence for the headline, which a reviewer will raise.** R4 recovers
+evidence state at 73.0 / 79.2 / 72.9% while a human agrees with the generator's
+labels at 56%. The probe beats human agreement with the ground truth. The honest
+reading is that the probe may be detecting the **intervention's signature** (the
+crop, the blur, the pasted occluder) rather than the semantic state a person
+infers; LOCO and the CLIP control rule out object identity and generic vision
+features, but neither rules this out. The competing reading, that the model
+encodes more than an untrained annotator notices in one first-instinct sitting,
+is equally live. State the tension rather than waiting to be asked.
+
+**Do not drop S1/S2/S4 on this alone.** The 60% criterion (14 Aug) was written
+for *intra*-annotator self-agreement. This is a different measurement, from one
+untrained annotator instructed to go with first instinct and not revise, which
+measures naive legibility - a floor, not a ceiling. Applying that criterion here
+is a judgement to make explicitly, after the intra-annotator pass, not by
+default.
+
+Raw responses: `nb 9 results/relabel_v2/annotator_B_labels.txt`. **Do not open
+that file before doing your own pass** - it is 100 labels for the same rows in
+the same order, and reading it would anchor you. Score with
+`score_external.py`, which never writes to the sheet.
+
 ---
 
 ## 3. Compute
@@ -203,6 +260,11 @@ If you rerun for any other reason: attach nb1, nb2, nb3, `nb6 vlm` (SmolVLM
 acts) and nb5 v2 (probe cache). All three probes load from cache, ~15 min.
 
 ### 5c. Blind self-relabel - human, 100 items
+
+**Status 20 Aug: the inter-annotator pass is DONE** (56%, kappa 0.472 - see the
+inter-annotator subsection in section 2). What remains is your own
+**intra**-annotator pass, which opens 21 Aug and is the measurement the 60%
+criterion was actually written for. Keep the two separate in the paper.
 
 ⚠️ **The first sheet is burned. A replacement was exported 19 Aug; it opens
 21 Aug.** Read this whole section before touching anything relabel-related.
@@ -381,3 +443,10 @@ under both aggregation rules and both reference designs.
 sanity check passing, not a result. Rung 2 exemplars are text-only, so it
 measures label-space priming, not multimodal ICL. Intra-annotator agreement is
 weaker than inter-annotator and must be described as such.
+
+**And state this without being asked:** a second annotator reproduces the six
+states at 56% (kappa 0.472) while the probe reads them at 73 to 79%, so the
+probe exceeds human agreement with the ground truth. Report the number, give the
+intervention-signature explanation as a live alternative, and note that merging
+S1/S2/S5 into one "cannot see" class lifts human agreement to 75% on a 4-way
+task. See the inter-annotator subsection in section 2.
