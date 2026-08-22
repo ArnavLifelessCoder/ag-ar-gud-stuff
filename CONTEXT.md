@@ -130,9 +130,17 @@ Provenance: `run_logs/nb7_closed_set_gate.log`; raw rows in `nb7 results/`.
 
 ### Inter-annotator legibility (20 Aug): the taxonomy is only moderately reproducible
 
-A second annotator, who had never seen the data, labelled all 100 rows of
-`relabel_v2` from the blind HTML. This is **inter**-annotator agreement and has
-no cooling-off requirement, so it landed before the intra-annotator pass.
+A second annotator labelled all 100 rows of `relabel_v2` from the blind HTML.
+This is **inter**-annotator agreement and has no cooling-off requirement, so it
+landed before the intra-annotator pass.
+
+**Who they are matters for how this reads.** A co-researcher on the project who
+had **not** seen the dataset, and who learned S0-S5 from the task README rather
+than helping define them. So: not naive, not a co-designer - roughly a trained
+annotator applying a written codebook cold. That is the population the taxonomy
+has to work for, which makes 56% a fair estimate of the definitions' usability
+rather than a floor set by inexperience. Their project familiarity, if anything,
+should have pushed agreement up.
 
 **56/100 = 56.0%** [95% Wilson CI 46, 65], **Cohen's kappa 0.472**, against a
 16.7% chance floor. Above chance by a wide margin, moderate by any standard
@@ -170,15 +178,19 @@ reading is that the probe may be detecting the **intervention's signature** (the
 crop, the blur, the pasted occluder) rather than the semantic state a person
 infers; LOCO and the CLIP control rule out object identity and generic vision
 features, but neither rules this out. The competing reading, that the model
-encodes more than an untrained annotator notices in one first-instinct sitting,
-is equally live. State the tension rather than waiting to be asked.
+encodes more than a person recovers from a single still image under a
+first-instinct instruction, is equally live. State the tension rather than
+waiting to be asked.
 
-**Do not drop S1/S2/S4 on this alone.** The 60% criterion (14 Aug) was written
-for *intra*-annotator self-agreement. This is a different measurement, from one
-untrained annotator instructed to go with first instinct and not revise, which
-measures naive legibility - a floor, not a ceiling. Applying that criterion here
-is a judgement to make explicitly, after the intra-annotator pass, not by
-default.
+**Dropping S1/S2/S4 is now a live option, but not automatic.** The 60%
+criterion (14 Aug) was written for *intra*-annotator self-agreement, and this is
+a different measurement, so it does not fire by itself. What it no longer has is
+the easy excuse: the annotator was not naive, so 56% is a statement about the
+written definitions rather than about inexperience. Two things still argue for
+waiting on the 21 Aug intra-annotator pass before deciding - n is 14 to 20 per
+state, and the "first instinct, do not revise" instruction in the README
+genuinely depresses the number. Make the call explicitly once both numbers
+exist, and record the reasoning here.
 
 Raw responses: `nb 9 results/relabel_v2/annotator_B_labels.txt`. **Do not open
 that file before doing your own pass** - it is 100 labels for the same rows in
@@ -444,7 +456,8 @@ sanity check passing, not a result. Rung 2 exemplars are text-only, so it
 measures label-space priming, not multimodal ICL. Intra-annotator agreement is
 weaker than inter-annotator and must be described as such.
 
-**And state this without being asked:** a second annotator reproduces the six
+**And state this without being asked:** a second annotator - a co-researcher
+blind to the dataset, working from the written codebook - reproduces the six
 states at 56% (kappa 0.472) while the probe reads them at 73 to 79%, so the
 probe exceeds human agreement with the ground truth. Report the number, give the
 intervention-signature explanation as a live alternative, and note that merging
