@@ -128,11 +128,21 @@ all three (p = 0.36 / 0.18 / 0.86).
 
 Provenance: `run_logs/nb7_closed_set_gate.log`; raw rows in `nb7 results/`.
 
-### Inter-annotator legibility (20 Aug): the taxonomy is only moderately reproducible
+### Label validity (20 Aug): the six states are not recoverable from the stimulus
 
 A second annotator labelled all 100 rows of `relabel_v2` from the blind HTML.
-This is **inter**-annotator agreement and has no cooling-off requirement, so it
-landed before the intra-annotator pass.
+
+**Call this label validity, not inter-annotator agreement.** I used the wrong
+term in two earlier commits. The comparison is one human against `gold`, which
+`export_sheet` copies from `Item.state` - the state the **generator recorded
+when it built the item** (`generate.py:519`), i.e. the edit the script applied.
+There is only one human in this, so it is not a reliability measurement between
+two raters. It asks whether the constructed labels mean what they claim, which
+is a validity question and the sharper one. Cohen's kappa here treats the
+generator as a second rater; say so rather than letting it read as standard
+inter-rater kappa. Inter-annotator reliability was never measured.
+
+It needs no cooling-off, so it landed before any intra-annotator pass.
 
 **Who they are matters for how this reads.** A co-researcher on the project who
 had **not** seen the dataset, and who learned S0-S5 from the task README rather
@@ -181,6 +191,60 @@ features, but neither rules this out. The competing reading, that the model
 encodes more than a person recovers from a single still image under a
 first-instinct instruction, is equally live. State the tension rather than
 waiting to be asked.
+
+### Why the states are not recoverable: S1 and S5 are the same stimulus
+
+The co-researcher's own diagnosis, and the data confirms it. **S1 cannot be told
+from S5 by looking.** `gen_S1` crops so the object falls outside the frame
+(`generate.py:242`); `gen_S5` returns the image **untouched** and only changes
+the question (`generate.py:381`). Both show a picture with no such object in it.
+Whether it was cropped away or was never there exists only in the generator's
+records. Those errors were not avoidable.
+
+Regrouping accordingly:
+
+| Grouping | agreement | chance |
+|---|---:|---:|
+| as reported, 6-way | 56% | 16.7% |
+| **S1+S5 merged** (not identifiable) | **65%** | 20.0% |
+| S1+S2+S5 merged | 75% | 25.0% |
+| "was the image edited at all" | 71% | 50.0% |
+
+On the merged class itself, **S1/S5 recall is 93.9% (31/33)**. The annotator was
+near-perfect at "the object is not visible" and could not recover why. The same
+argument covers S2: `gen_S2` composites an occluder over **>=90%** of every
+instance mask (`generate.py:246`), so an occluded object is usually not visible
+either, which is why S2 is the worst state at 35%. That is the same
+non-identifiability, not a separate defect. What survives as a genuine
+definitional problem is **S4 at 50%** - ambiguity going unnoticed, with the
+information fully present in the image.
+
+### The geometry confound, which is the bigger consequence
+
+**S1 is the only state that changes image dimensions, and it is perfectly
+separable on that alone.** Measured off the 100 embedded thumbnails, whose
+aspect ratios `thumbnail()` preserves:
+
+| | S0 | S1 | S2 | S3 | S4 | S5 |
+|---|---:|---:|---:|---:|---:|---:|
+| median AR | 1.335 | **0.814** | 1.333 | 1.333 | 1.369 | 1.497 |
+| distinct ARs | 7 | **15 of 15** | 10 | 12 | 8 | 12 |
+
+52% of non-S1 items sit on exactly 1.33 / 1.50 / 1.51, COCO's native shapes.
+**0% of S1 items do**, and no two S1 items share a ratio. A classifier on image
+dimensions alone identifies S1 with near-perfect precision, no vision involved.
+
+**So reframe the CLIP control.** CLIP's 44.3% is currently reported as showing
+the effect is not "a generic vision encoder", because 73 to 79% clears it. But
+44.3% against a 16.7% floor is a great deal, and the likeliest explanation is
+that CLIP detects **intervention artifacts** - three of six states edit the
+image (S1 crop, S2 paste, S3 blur) and three do not (S0, S4, S5). If that is
+what CLIP measures, the defensible effect size is **probe minus CLIP, +29 to +35
+points**, not probe minus chance. Lead with that. "73% against 16.7% chance" is
+the version that does not survive this objection.
+
+Quantifying it properly needs a 5-state probe refit from the activations;
+`probe_cache.json` holds only summary scalars, so it cannot be done locally.
 
 **Dropping S1/S2/S4 is now a live option, but not automatic.** The 60%
 criterion (14 Aug) was written for *intra*-annotator self-agreement, and this is
@@ -271,12 +335,16 @@ Qwen's consistency block, or leave it off.
 If you rerun for any other reason: attach nb1, nb2, nb3, `nb6 vlm` (SmolVLM
 acts) and nb5 v2 (probe cache). All three probes load from cache, ~15 min.
 
-### 5c. Blind self-relabel - human, 100 items
+### 5c. Blind relabel - label validity, DONE 20 Aug
 
-**Status 20 Aug: the inter-annotator pass is DONE** (56%, kappa 0.472 - see the
-inter-annotator subsection in section 2). What remains is your own
-**intra**-annotator pass, which opens 21 Aug and is the measurement the 60%
-criterion was actually written for. Keep the two separate in the paper.
+**Status 20 Aug: the validity pass is DONE** (56%, kappa 0.472 - see the label
+validity subsection in section 2). **The intra-annotator pass is cancelled and
+should not be attempted.** `annotator_B_labels.txt` was opened in order to score
+it, so `relabel_v2` can no longer be labelled blind by this author, and a third
+sheet would need its own 48 h clock landing on the 22 Aug freeze. This costs
+little: the pre-registered self-relabel was the weaker measurement, and a blind
+second annotator against the construction labels is the stronger one. Report it
+as a substitution, and give the reason.
 
 ⚠️ **The first sheet is burned. A replacement was exported 19 Aug; it opens
 21 Aug.** Read this whole section before touching anything relabel-related.
@@ -435,9 +503,13 @@ committed `relabel_key.json` to a public repo. Stage explicit paths.
 **Claim:** a linear probe on mid-layer activations recovers evidence state far
 above what the model reports (+32.0 / +40.7 / +49.0 on three architectures),
 including on a model at chance behaviourally - so representation and
-reportability dissociate. Few-shot does not close the gap. Not explained by a
-generic vision encoder (CLIP 44.3%), not object-identity detection (LOCO ≈ free),
-and not shared between models (transfer at chance).
+reportability dissociate. Few-shot does not close the gap. Not object-identity
+detection (LOCO ≈ free) and not shared between models (transfer at chance).
+
+**Quote the effect size against CLIP, not against chance.** CLIP's 44.3% is best
+read as an intervention-artifact detector, so the defensible number is the +29
+to +35 points the probe adds on top of it. See the geometry-confound subsection
+in section 2.
 
 **Also claim, as a methods contribution:** two independent reference designs
 fail the same stability gate (58.8% → 41.0% at 99.1% instruction compliance),
@@ -453,13 +525,16 @@ under both aggregation rules and both reference designs.
 **Also state plainly:** S4 consistency (98.2 / 96.4 / 91.7%) is high because
 `gen_S4` leaves the image untouched, so it measures decoding noise like S0 - a
 sanity check passing, not a result. Rung 2 exemplars are text-only, so it
-measures label-space priming, not multimodal ICL. Intra-annotator agreement is
-weaker than inter-annotator and must be described as such.
+measures label-space priming, not multimodal ICL.
 
-**And state this without being asked:** a second annotator - a co-researcher
-blind to the dataset, working from the written codebook - reproduces the six
-states at 56% (kappa 0.472) while the probe reads them at 73 to 79%, so the
-probe exceeds human agreement with the ground truth. Report the number, give the
-intervention-signature explanation as a live alternative, and note that merging
-S1/S2/S5 into one "cannot see" class lifts human agreement to 75% on a 4-way
-task. See the inter-annotator subsection in section 2.
+**And state all of this without being asked.** A blind second annotator
+reproduces the six construction labels at 56% (kappa 0.472) while the probe
+reads them at 73 to 79%, so the probe exceeds human agreement with the ground
+truth. S1 and S5 are the same stimulus and cannot be told apart by looking;
+merging them gives 65%, and merging S1/S2/S5 gives 75% on a 4-way task at 93.9%
+recall for the merged class. S1 is separable on aspect ratio alone, so part of
+R4 may be reading the crop rather than the evidence state. Report four-way as
+primary, keep six-way in supplementary, and say plainly that the reason a
+question is unanswerable is often not recoverable from the image - that is a
+property of the design, not an annotation failure. See the label validity and
+geometry-confound subsections in section 2.
